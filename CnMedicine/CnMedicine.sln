@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.902
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CnMedicineServer", "CnMedicineServer\CnMedicineServer.csproj", "{AA879DE7-4410-4D8D-8DEA-9FF521EB987E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "资料", "资料", "{8EA24471-ACCE-46C4-B774-65E7A6F16DBE}"
+	ProjectSection(SolutionItems) = preProject
+		医生经验2019.xlsx = 医生经验2019.xlsx
+		数字中医研讨书-7.26(1).pptx = 数字中医研讨书-7.26(1).pptx
+		鼻炎方案.docx = 鼻炎方案.docx
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AA879DE7-4410-4D8D-8DEA-9FF521EB987E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA879DE7-4410-4D8D-8DEA-9FF521EB987E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA879DE7-4410-4D8D-8DEA-9FF521EB987E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA879DE7-4410-4D8D-8DEA-9FF521EB987E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {571C9B82-E8CE-499F-BC43-15282B11A499}
+	EndGlobalSection
+EndGlobal

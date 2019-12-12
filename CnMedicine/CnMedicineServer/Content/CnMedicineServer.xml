@@ -1,0 +1,1216 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>CnMedicineServer</name>
+    </assembly>
+    <members>
+        <member name="M:CnMedicineServer.Areas.HelpPage.ApiDescriptionExtensions.GetFriendlyId(System.Web.Http.Description.ApiDescription)">
+            <summary>
+            Generates an URI-friendly ID for the <see cref="T:System.Web.Http.Description.ApiDescription"/>. E.g. "Get-Values-id_name" instead of "GetValues/{id}?name={name}"
+            </summary>
+            <param name="description">The <see cref="T:System.Web.Http.Description.ApiDescription"/>.</param>
+            <returns>The ID as a string.</returns>
+        </member>
+        <member name="T:CnMedicineServer.Areas.HelpPage.HelpPageConfig">
+            <summary>
+            Use this class to customize the Help Page.
+            For example you can set a custom <see cref="T:System.Web.Http.Description.IDocumentationProvider"/> to supply the documentation
+            or you can provide the samples for the requests/responses.
+            </summary>
+        </member>
+        <member name="T:CnMedicineServer.Areas.HelpPage.Controllers.HelpController">
+            <summary>
+            The controller that will handle requests for the help page.
+            </summary>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageConfigurationExtensions.SetDocumentationProvider(System.Web.Http.HttpConfiguration,System.Web.Http.Description.IDocumentationProvider)">
+            <summary>
+            Sets the documentation provider for help page.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="documentationProvider">The documentation provider.</param>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageConfigurationExtensions.SetSampleObjects(System.Web.Http.HttpConfiguration,System.Collections.Generic.IDictionary{System.Type,System.Object})">
+            <summary>
+            Sets the objects that will be used by the formatters to produce sample requests/responses.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="sampleObjects">The sample objects.</param>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageConfigurationExtensions.SetSampleRequest(System.Web.Http.HttpConfiguration,System.Object,System.Net.Http.Headers.MediaTypeHeaderValue,System.String,System.String)">
+            <summary>
+            Sets the sample request directly for the specified media type and action.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="sample">The sample request.</param>
+            <param name="mediaType">The media type.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageConfigurationExtensions.SetSampleRequest(System.Web.Http.HttpConfiguration,System.Object,System.Net.Http.Headers.MediaTypeHeaderValue,System.String,System.String,System.String[])">
+            <summary>
+            Sets the sample request directly for the specified media type and action with parameters.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="sample">The sample request.</param>
+            <param name="mediaType">The media type.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+            <param name="parameterNames">The parameter names.</param>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageConfigurationExtensions.SetSampleResponse(System.Web.Http.HttpConfiguration,System.Object,System.Net.Http.Headers.MediaTypeHeaderValue,System.String,System.String)">
+            <summary>
+            Sets the sample request directly for the specified media type of the action.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="sample">The sample response.</param>
+            <param name="mediaType">The media type.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageConfigurationExtensions.SetSampleResponse(System.Web.Http.HttpConfiguration,System.Object,System.Net.Http.Headers.MediaTypeHeaderValue,System.String,System.String,System.String[])">
+            <summary>
+            Sets the sample response directly for the specified media type of the action with specific parameters.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="sample">The sample response.</param>
+            <param name="mediaType">The media type.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+            <param name="parameterNames">The parameter names.</param>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageConfigurationExtensions.SetSampleForMediaType(System.Web.Http.HttpConfiguration,System.Object,System.Net.Http.Headers.MediaTypeHeaderValue)">
+            <summary>
+            Sets the sample directly for all actions with the specified media type.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="sample">The sample.</param>
+            <param name="mediaType">The media type.</param>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageConfigurationExtensions.SetSampleForType(System.Web.Http.HttpConfiguration,System.Object,System.Net.Http.Headers.MediaTypeHeaderValue,System.Type)">
+            <summary>
+            Sets the sample directly for all actions with the specified type and media type.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="sample">The sample.</param>
+            <param name="mediaType">The media type.</param>
+            <param name="type">The parameter type or return type of an action.</param>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageConfigurationExtensions.SetActualRequestType(System.Web.Http.HttpConfiguration,System.Type,System.String,System.String)">
+            <summary>
+            Specifies the actual type of <see cref="T:System.Net.Http.ObjectContent`1"/> passed to the <see cref="T:System.Net.Http.HttpRequestMessage"/> in an action.
+            The help page will use this information to produce more accurate request samples.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="type">The type.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageConfigurationExtensions.SetActualRequestType(System.Web.Http.HttpConfiguration,System.Type,System.String,System.String,System.String[])">
+            <summary>
+            Specifies the actual type of <see cref="T:System.Net.Http.ObjectContent`1"/> passed to the <see cref="T:System.Net.Http.HttpRequestMessage"/> in an action.
+            The help page will use this information to produce more accurate request samples.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="type">The type.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+            <param name="parameterNames">The parameter names.</param>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageConfigurationExtensions.SetActualResponseType(System.Web.Http.HttpConfiguration,System.Type,System.String,System.String)">
+            <summary>
+            Specifies the actual type of <see cref="T:System.Net.Http.ObjectContent`1"/> returned as part of the <see cref="T:System.Net.Http.HttpRequestMessage"/> in an action.
+            The help page will use this information to produce more accurate response samples.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="type">The type.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageConfigurationExtensions.SetActualResponseType(System.Web.Http.HttpConfiguration,System.Type,System.String,System.String,System.String[])">
+            <summary>
+            Specifies the actual type of <see cref="T:System.Net.Http.ObjectContent`1"/> returned as part of the <see cref="T:System.Net.Http.HttpRequestMessage"/> in an action.
+            The help page will use this information to produce more accurate response samples.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="type">The type.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+            <param name="parameterNames">The parameter names.</param>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageConfigurationExtensions.GetHelpPageSampleGenerator(System.Web.Http.HttpConfiguration)">
+            <summary>
+            Gets the help page sample generator.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <returns>The help page sample generator.</returns>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageConfigurationExtensions.SetHelpPageSampleGenerator(System.Web.Http.HttpConfiguration,CnMedicineServer.Areas.HelpPage.HelpPageSampleGenerator)">
+            <summary>
+            Sets the help page sample generator.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="sampleGenerator">The help page sample generator.</param>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageConfigurationExtensions.GetModelDescriptionGenerator(System.Web.Http.HttpConfiguration)">
+            <summary>
+            Gets the model description generator.
+            </summary>
+            <param name="config">The configuration.</param>
+            <returns>The <see cref="T:CnMedicineServer.Areas.HelpPage.ModelDescriptions.ModelDescriptionGenerator"/></returns>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageConfigurationExtensions.GetHelpPageApiModel(System.Web.Http.HttpConfiguration,System.String)">
+            <summary>
+            Gets the model that represents an API displayed on the help page. The model is initialized on the first call and cached for subsequent calls.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="apiDescriptionId">The <see cref="T:System.Web.Http.Description.ApiDescription"/> ID.</param>
+            <returns>
+            An <see cref="T:CnMedicineServer.Areas.HelpPage.Models.HelpPageApiModel"/>
+            </returns>
+        </member>
+        <member name="T:CnMedicineServer.Areas.HelpPage.ModelDescriptions.ModelDescription">
+            <summary>
+            Describes a type model.
+            </summary>
+        </member>
+        <member name="T:CnMedicineServer.Areas.HelpPage.ModelDescriptions.ModelDescriptionGenerator">
+            <summary>
+            Generates model descriptions for given types.
+            </summary>
+        </member>
+        <member name="T:CnMedicineServer.Areas.HelpPage.ModelDescriptions.ModelNameAttribute">
+            <summary>
+            Use this attribute to change the name of the <see cref="T:CnMedicineServer.Areas.HelpPage.ModelDescriptions.ModelDescription"/> generated for a type.
+            </summary>
+        </member>
+        <member name="T:CnMedicineServer.Areas.HelpPage.Models.HelpPageApiModel">
+            <summary>
+            The model that represents an API displayed on the help page.
+            </summary>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.Models.HelpPageApiModel.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:CnMedicineServer.Areas.HelpPage.Models.HelpPageApiModel"/> class.
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Areas.HelpPage.Models.HelpPageApiModel.ApiDescription">
+            <summary>
+            Gets or sets the <see cref="P:CnMedicineServer.Areas.HelpPage.Models.HelpPageApiModel.ApiDescription"/> that describes the API.
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Areas.HelpPage.Models.HelpPageApiModel.UriParameters">
+            <summary>
+            Gets or sets the <see cref="T:CnMedicineServer.Areas.HelpPage.ModelDescriptions.ParameterDescription"/> collection that describes the URI parameters for the API.
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Areas.HelpPage.Models.HelpPageApiModel.RequestDocumentation">
+            <summary>
+            Gets or sets the documentation for the request.
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Areas.HelpPage.Models.HelpPageApiModel.RequestModelDescription">
+            <summary>
+            Gets or sets the <see cref="T:CnMedicineServer.Areas.HelpPage.ModelDescriptions.ModelDescription"/> that describes the request body.
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Areas.HelpPage.Models.HelpPageApiModel.RequestBodyParameters">
+            <summary>
+            Gets the request body parameter descriptions.
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Areas.HelpPage.Models.HelpPageApiModel.ResourceDescription">
+            <summary>
+            Gets or sets the <see cref="T:CnMedicineServer.Areas.HelpPage.ModelDescriptions.ModelDescription"/> that describes the resource.
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Areas.HelpPage.Models.HelpPageApiModel.ResourceProperties">
+            <summary>
+            Gets the resource property descriptions.
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Areas.HelpPage.Models.HelpPageApiModel.SampleRequests">
+            <summary>
+            Gets the sample requests associated with the API.
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Areas.HelpPage.Models.HelpPageApiModel.SampleResponses">
+            <summary>
+            Gets the sample responses associated with the API.
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Areas.HelpPage.Models.HelpPageApiModel.ErrorMessages">
+            <summary>
+            Gets the error messages associated with this model.
+            </summary>
+        </member>
+        <member name="T:CnMedicineServer.Areas.HelpPage.HelpPageSampleGenerator">
+            <summary>
+            This class will generate the samples for the help page.
+            </summary>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageSampleGenerator.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:CnMedicineServer.Areas.HelpPage.HelpPageSampleGenerator"/> class.
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Areas.HelpPage.HelpPageSampleGenerator.ActualHttpMessageTypes">
+            <summary>
+            Gets CLR types that are used as the content of <see cref="T:System.Net.Http.HttpRequestMessage"/> or <see cref="T:System.Net.Http.HttpResponseMessage"/>.
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Areas.HelpPage.HelpPageSampleGenerator.ActionSamples">
+            <summary>
+            Gets the objects that are used directly as samples for certain actions.
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Areas.HelpPage.HelpPageSampleGenerator.SampleObjects">
+            <summary>
+            Gets the objects that are serialized as samples by the supported formatters.
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Areas.HelpPage.HelpPageSampleGenerator.SampleObjectFactories">
+            <summary>
+            Gets factories for the objects that the supported formatters will serialize as samples. Processed in order,
+            stopping when the factory successfully returns a non-<see langref="null"/> object.
+            </summary>
+            <remarks>
+            Collection includes just <see cref="M:CnMedicineServer.Areas.HelpPage.ObjectGenerator.GenerateObject(System.Type)"/> initially. Use
+            <code>SampleObjectFactories.Insert(0, func)</code> to provide an override and
+            <code>SampleObjectFactories.Add(func)</code> to provide a fallback.</remarks>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageSampleGenerator.GetSampleRequests(System.Web.Http.Description.ApiDescription)">
+            <summary>
+            Gets the request body samples for a given <see cref="T:System.Web.Http.Description.ApiDescription"/>.
+            </summary>
+            <param name="api">The <see cref="T:System.Web.Http.Description.ApiDescription"/>.</param>
+            <returns>The samples keyed by media type.</returns>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageSampleGenerator.GetSampleResponses(System.Web.Http.Description.ApiDescription)">
+            <summary>
+            Gets the response body samples for a given <see cref="T:System.Web.Http.Description.ApiDescription"/>.
+            </summary>
+            <param name="api">The <see cref="T:System.Web.Http.Description.ApiDescription"/>.</param>
+            <returns>The samples keyed by media type.</returns>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageSampleGenerator.GetSample(System.Web.Http.Description.ApiDescription,CnMedicineServer.Areas.HelpPage.SampleDirection)">
+            <summary>
+            Gets the request or response body samples.
+            </summary>
+            <param name="api">The <see cref="T:System.Web.Http.Description.ApiDescription"/>.</param>
+            <param name="sampleDirection">The value indicating whether the sample is for a request or for a response.</param>
+            <returns>The samples keyed by media type.</returns>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageSampleGenerator.GetActionSample(System.String,System.String,System.Collections.Generic.IEnumerable{System.String},System.Type,System.Net.Http.Formatting.MediaTypeFormatter,System.Net.Http.Headers.MediaTypeHeaderValue,CnMedicineServer.Areas.HelpPage.SampleDirection)">
+            <summary>
+            Search for samples that are provided directly through <see cref="P:CnMedicineServer.Areas.HelpPage.HelpPageSampleGenerator.ActionSamples"/>.
+            </summary>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+            <param name="parameterNames">The parameter names.</param>
+            <param name="type">The CLR type.</param>
+            <param name="formatter">The formatter.</param>
+            <param name="mediaType">The media type.</param>
+            <param name="sampleDirection">The value indicating whether the sample is for a request or for a response.</param>
+            <returns>The sample that matches the parameters.</returns>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageSampleGenerator.GetSampleObject(System.Type)">
+            <summary>
+            Gets the sample object that will be serialized by the formatters. 
+            First, it will look at the <see cref="P:CnMedicineServer.Areas.HelpPage.HelpPageSampleGenerator.SampleObjects"/>. If no sample object is found, it will try to create
+            one using <see cref="M:CnMedicineServer.Areas.HelpPage.HelpPageSampleGenerator.DefaultSampleObjectFactory(CnMedicineServer.Areas.HelpPage.HelpPageSampleGenerator,System.Type)"/> (which wraps an <see cref="T:CnMedicineServer.Areas.HelpPage.ObjectGenerator"/>) and other
+            factories in <see cref="P:CnMedicineServer.Areas.HelpPage.HelpPageSampleGenerator.SampleObjectFactories"/>.
+            </summary>
+            <param name="type">The type.</param>
+            <returns>The sample object.</returns>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageSampleGenerator.ResolveHttpRequestMessageType(System.Web.Http.Description.ApiDescription)">
+            <summary>
+            Resolves the actual type of <see cref="T:System.Net.Http.ObjectContent`1"/> passed to the <see cref="T:System.Net.Http.HttpRequestMessage"/> in an action.
+            </summary>
+            <param name="api">The <see cref="T:System.Web.Http.Description.ApiDescription"/>.</param>
+            <returns>The type.</returns>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageSampleGenerator.ResolveType(System.Web.Http.Description.ApiDescription,System.String,System.String,System.Collections.Generic.IEnumerable{System.String},CnMedicineServer.Areas.HelpPage.SampleDirection,System.Collections.ObjectModel.Collection{System.Net.Http.Formatting.MediaTypeFormatter}@)">
+            <summary>
+            Resolves the type of the action parameter or return value when <see cref="T:System.Net.Http.HttpRequestMessage"/> or <see cref="T:System.Net.Http.HttpResponseMessage"/> is used.
+            </summary>
+            <param name="api">The <see cref="T:System.Web.Http.Description.ApiDescription"/>.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+            <param name="parameterNames">The parameter names.</param>
+            <param name="sampleDirection">The value indicating whether the sample is for a request or a response.</param>
+            <param name="formatters">The formatters.</param>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageSampleGenerator.WriteSampleObjectUsingFormatter(System.Net.Http.Formatting.MediaTypeFormatter,System.Object,System.Type,System.Net.Http.Headers.MediaTypeHeaderValue)">
+            <summary>
+            Writes the sample object using formatter.
+            </summary>
+            <param name="formatter">The formatter.</param>
+            <param name="value">The value.</param>
+            <param name="type">The type.</param>
+            <param name="mediaType">Type of the media.</param>
+            <returns></returns>
+        </member>
+        <member name="T:CnMedicineServer.Areas.HelpPage.HelpPageSampleKey">
+            <summary>
+            This is used to identify the place where the sample should be applied.
+            </summary>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageSampleKey.#ctor(System.Net.Http.Headers.MediaTypeHeaderValue)">
+            <summary>
+            Creates a new <see cref="T:CnMedicineServer.Areas.HelpPage.HelpPageSampleKey"/> based on media type.
+            </summary>
+            <param name="mediaType">The media type.</param>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageSampleKey.#ctor(System.Net.Http.Headers.MediaTypeHeaderValue,System.Type)">
+            <summary>
+            Creates a new <see cref="T:CnMedicineServer.Areas.HelpPage.HelpPageSampleKey"/> based on media type and CLR type.
+            </summary>
+            <param name="mediaType">The media type.</param>
+            <param name="type">The CLR type.</param>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageSampleKey.#ctor(CnMedicineServer.Areas.HelpPage.SampleDirection,System.String,System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Creates a new <see cref="T:CnMedicineServer.Areas.HelpPage.HelpPageSampleKey"/> based on <see cref="P:CnMedicineServer.Areas.HelpPage.HelpPageSampleKey.SampleDirection"/>, controller name, action name and parameter names.
+            </summary>
+            <param name="sampleDirection">The <see cref="P:CnMedicineServer.Areas.HelpPage.HelpPageSampleKey.SampleDirection"/>.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+            <param name="parameterNames">The parameter names.</param>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.HelpPageSampleKey.#ctor(System.Net.Http.Headers.MediaTypeHeaderValue,CnMedicineServer.Areas.HelpPage.SampleDirection,System.String,System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Creates a new <see cref="T:CnMedicineServer.Areas.HelpPage.HelpPageSampleKey"/> based on media type, <see cref="P:CnMedicineServer.Areas.HelpPage.HelpPageSampleKey.SampleDirection"/>, controller name, action name and parameter names.
+            </summary>
+            <param name="mediaType">The media type.</param>
+            <param name="sampleDirection">The <see cref="P:CnMedicineServer.Areas.HelpPage.HelpPageSampleKey.SampleDirection"/>.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+            <param name="parameterNames">The parameter names.</param>
+        </member>
+        <member name="P:CnMedicineServer.Areas.HelpPage.HelpPageSampleKey.ControllerName">
+            <summary>
+            Gets the name of the controller.
+            </summary>
+            <value>
+            The name of the controller.
+            </value>
+        </member>
+        <member name="P:CnMedicineServer.Areas.HelpPage.HelpPageSampleKey.ActionName">
+            <summary>
+            Gets the name of the action.
+            </summary>
+            <value>
+            The name of the action.
+            </value>
+        </member>
+        <member name="P:CnMedicineServer.Areas.HelpPage.HelpPageSampleKey.MediaType">
+            <summary>
+            Gets the media type.
+            </summary>
+            <value>
+            The media type.
+            </value>
+        </member>
+        <member name="P:CnMedicineServer.Areas.HelpPage.HelpPageSampleKey.ParameterNames">
+            <summary>
+            Gets the parameter names.
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Areas.HelpPage.HelpPageSampleKey.SampleDirection">
+            <summary>
+            Gets the <see cref="P:CnMedicineServer.Areas.HelpPage.HelpPageSampleKey.SampleDirection"/>.
+            </summary>
+        </member>
+        <member name="T:CnMedicineServer.Areas.HelpPage.ImageSample">
+            <summary>
+            This represents an image sample on the help page. There's a display template named ImageSample associated with this class.
+            </summary>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.ImageSample.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:CnMedicineServer.Areas.HelpPage.ImageSample"/> class.
+            </summary>
+            <param name="src">The URL of an image.</param>
+        </member>
+        <member name="T:CnMedicineServer.Areas.HelpPage.InvalidSample">
+            <summary>
+            This represents an invalid sample on the help page. There's a display template named InvalidSample associated with this class.
+            </summary>
+        </member>
+        <member name="T:CnMedicineServer.Areas.HelpPage.ObjectGenerator">
+            <summary>
+            This class will create an object of a given type and populate it with sample data.
+            </summary>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.ObjectGenerator.GenerateObject(System.Type)">
+            <summary>
+            Generates an object for a given type. The type needs to be public, have a public default constructor and settable public properties/fields. Currently it supports the following types:
+            Simple types: <see cref="T:System.Int32"/>, <see cref="T:System.String"/>, <see cref="T:System.Enum"/>, <see cref="T:System.DateTime"/>, <see cref="T:System.Uri"/>, etc.
+            Complex types: POCO types.
+            Nullables: <see cref="T:System.Nullable`1"/>.
+            Arrays: arrays of simple types or complex types.
+            Key value pairs: <see cref="T:System.Collections.Generic.KeyValuePair`2"/>
+            Tuples: <see cref="T:System.Tuple`1"/>, <see cref="T:System.Tuple`2"/>, etc
+            Dictionaries: <see cref="T:System.Collections.Generic.IDictionary`2"/> or anything deriving from <see cref="T:System.Collections.Generic.IDictionary`2"/>.
+            Collections: <see cref="T:System.Collections.Generic.IList`1"/>, <see cref="T:System.Collections.Generic.IEnumerable`1"/>, <see cref="T:System.Collections.Generic.ICollection`1"/>, <see cref="T:System.Collections.IList"/>, <see cref="T:System.Collections.IEnumerable"/>, <see cref="T:System.Collections.ICollection"/> or anything deriving from <see cref="T:System.Collections.Generic.ICollection`1"/> or <see cref="T:System.Collections.IList"/>.
+            Queryables: <see cref="T:System.Linq.IQueryable"/>, <see cref="T:System.Linq.IQueryable`1"/>.
+            </summary>
+            <param name="type">The type.</param>
+            <returns>An object of the given type.</returns>
+        </member>
+        <member name="T:CnMedicineServer.Areas.HelpPage.SampleDirection">
+            <summary>
+            Indicates whether the sample is used for request or response
+            </summary>
+        </member>
+        <member name="T:CnMedicineServer.Areas.HelpPage.TextSample">
+            <summary>
+            This represents a preformatted text sample on the help page. There's a display template named TextSample associated with this class.
+            </summary>
+        </member>
+        <member name="T:CnMedicineServer.Areas.HelpPage.XmlDocumentationProvider">
+            <summary>
+            A custom <see cref="T:System.Web.Http.Description.IDocumentationProvider"/> that reads the API documentation from an XML documentation file.
+            </summary>
+        </member>
+        <member name="M:CnMedicineServer.Areas.HelpPage.XmlDocumentationProvider.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:CnMedicineServer.Areas.HelpPage.XmlDocumentationProvider"/> class.
+            </summary>
+            <param name="documentPath">The physical path to XML document.</param>
+        </member>
+        <member name="T:CnMedicineServer.Controllers.SpecialCasesController">
+            <summary>
+            专病功能控制器。
+            </summary>
+        </member>
+        <member name="M:CnMedicineServer.Controllers.SpecialCasesController.GetList(OW.ViewModel.PagingControlBaseViewModel)">
+            <summary>
+            获取所有专病的列表。
+            </summary>
+            <param name="model">控制分页数据返回的参数。</param>
+            <returns></returns>
+        </member>
+        <member name="T:CnMedicineServer.Controllers.OwApiControllerBase">
+            <summary>
+            纯WebApi的控制器基类。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Controllers.OwApiControllerBase.UserManager">
+            <summary>
+            获取或设置用户管理器。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Controllers.OwApiControllerBase.DbContext">
+            <summary>
+            获取或设置用户管理器。
+            由宿主环境负责生命周期，一般不需要处置。
+            </summary>
+        </member>
+        <member name="M:CnMedicineServer.Controllers.OwApiControllerBase.GetErrorResult(Microsoft.AspNet.Identity.IdentityResult)">
+            <summary>
+            返回错误信息500。
+            </summary>
+            <param name="result"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CnMedicineServer.Controllers.OwApiControllerBase.HyPaging``1(System.Linq.IQueryable{``0},OW.ViewModel.PagingControlBaseViewModel)">
+            <summary>
+            返回分页数据结果。包含了错误处理。
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="queryable"></param>
+            <param name="model"></param>
+            <returns>200成功，此时返回分页数据。</returns>
+        </member>
+        <member name="T:CnMedicineServer.Models.SpecialCases">
+            <summary>
+            专病种类。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.SpecialCases.SurveysTemplate">
+            <summary>
+            使用的问卷调查模板的导航属性。
+            </summary>
+        </member>
+        <member name="T:CnMedicineServer.Models.SpecialCasesItem">
+            <summary>
+            专病的诊断模型。
+            </summary>
+        </member>
+        <member name="T:OW.Data.Entity.EntityWithGuid">
+            <summary>
+            以 Guid 为主键的实体类基类。
+            </summary>
+        </member>
+        <member name="M:OW.Data.Entity.EntityWithGuid.#ctor">
+            <summary>
+            构造函数。
+            </summary>
+        </member>
+        <member name="M:OW.Data.Entity.EntityWithGuid.#ctor(System.Guid)">
+            <summary>
+            构造函数。
+            </summary>
+            <param name="id"></param>
+        </member>
+        <member name="P:OW.Data.Entity.EntityWithGuid.Id">
+            <summary>
+            实体类的主键。
+            </summary>
+        </member>
+        <member name="T:OW.Data.Entity.ThingEntityBase">
+            <summary>
+            标识事物的实体基类。封装一些共有属性。
+            </summary>
+        </member>
+        <member name="M:OW.Data.Entity.ThingEntityBase.#ctor">
+            <summary>
+            构造函数。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.ThingEntityBase.Name">
+            <summary>
+            名称。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.ThingEntityBase.ShortName">
+            <summary>
+            一般性简称。最多8个字符。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.ThingEntityBase.Description">
+            <summary>
+            一般性描述信息。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.ThingEntityBase.CreateUtc">
+            <summary>
+            创建的时间。注意使用UTC时间！
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.ThingEntityBase.ThingPropertyItems">
+            <summary>
+            描述事物某个属性的对象。这个对象记录的信息服务器不加理解，仅供使用接口的程序使用。
+            </summary>
+        </member>
+        <member name="T:OW.Data.Entity.ThingPropertyItem">
+            <summary>
+            描述事物某个属性的对象。
+            需要注意：这个对象记录的信息服务器不加理解，仅供使用接口的程序使用，换言之服务器不能使用该属性处理逻辑。该属性不受权限控制请注意不要放置敏感信息。
+            </summary>
+        </member>
+        <member name="M:OW.Data.Entity.ThingPropertyItem.#ctor">
+            <summary>
+            构造函数。
+            </summary>
+        </member>
+        <member name="M:OW.Data.Entity.ThingPropertyItem.#ctor(System.Guid)">
+            <summary>
+            构造函数。
+            </summary>
+            <param name="id"></param>
+        </member>
+        <member name="P:OW.Data.Entity.ThingPropertyItem.Name">
+            <summary>
+            属性名称。只能是字符串。最长32字符。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.ThingPropertyItem.Value">
+            <summary>
+            属性的值。只能是字符串。最长256字符
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.ThingPropertyItem.ThingEntityId">
+            <summary>
+            所附属的实体的Id。
+            在实体中传送可忽略。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.ThingPropertyItem.OrderNum">
+            <summary>
+            排序号。同一个实体的多个扩展属性按此字段升序排序。序号不必连续，相等序号顺序随机。
+            </summary>
+        </member>
+        <member name="T:OW.Data.Entity.AddressDictionary">
+            <summary>
+            行政区域。展平，即每个村都有一条独立记录，完整的记录其省市县乡村；北京市也独立占一条，除NameOfLv1之外均为空。
+            该表很少变更，会大量查询。之所以这么设计也为了对应在数据超市里面购买数据导入方便，已知18万数据规模的约￥600。
+            截至到2013年上半年，全国范围行政村总数为691510个 ，14677个乡，19531个镇。
+            全国县级以上行政区划共有：23个省，5个自治区，4个直辖市，2个特别行政区；43个地区（州、盟）；290个地级市；1636个县（自治县、旗、自治旗、特区和林区），374个县级市，852个市辖区。总计：省级34个，地级333个，县级2862个。
+            全国乡镇级以下行政区划共有：2个区公所，19531个镇，14677个乡，181个苏木，1092 个民族乡，1个民族苏木，6152个街道。总计：41636个。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.AddressDictionary.PostalCode">
+            <summary>
+            邮政编码。最多10个字符，略作余量。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.AddressDictionary.ShortName">
+            <summary>
+            简称。对辽宁省这条记录简称是辽，对辽宁省沈阳市这条记录的简称是沈，没有简称的应空出。最多10个字符，略作余量。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.AddressDictionary.NameOfLv1">
+            <summary>
+            一级行政区的名字。如：内蒙古自治区。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.AddressDictionary.NameOfLv2">
+            <summary>
+            二级行政区的名字。如：福州市。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.AddressDictionary.NameOfLv3">
+            <summary>
+            三级行政区的名字。如：龙泉驿区。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.AddressDictionary.NameOfLv4">
+            <summary>
+            四级行政区的名字。一般没有。也能对应到有独立邮政编码的乡镇。如龙潭镇,或XX街道/地区(对应行政区划设置)。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.AddressDictionary.NameOfLv5">
+            <summary>
+            五级行政区的名字。罕见且正在变少。也能对应到有独立邮政编码的自然村。如王家沟村。
+            </summary>
+        </member>
+        <member name="M:OW.Data.Entity.AddressDictionary.ToString">
+            <summary>
+             返回该地址的字符串。
+            </summary>
+            <returns>地址字符串。</returns>
+        </member>
+        <member name="T:OW.Data.Entity.DetailedAddress">
+            <summary>
+            详细地址。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DetailedAddress.AddressDictionary">
+            <summary>
+            行政区域的导航属性。接口不要使用此属性设置数据。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DetailedAddress.AddressDictionaryId">
+            <summary>
+            行政区域的Id。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DetailedAddress.Detailed">
+            <summary>
+            详细地址。不要重复行政区域地址已经包含的部分。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DetailedAddress.DisplayName">
+            <summary>
+            显示地址，这个属性可以为空，自动生成为 行政区域地址 详细地址。但一些情况可能需要强制设置显示地址。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DetailedAddress.PostalCode">
+            <summary>
+            邮政编码。最多10个字符，略作余量。特殊情况可以用这个属性覆盖行政区的邮政编码。一般空着就可以。如果不填写则使用行政区域的邮政编码填充。
+            </summary>
+        </member>
+        <member name="T:OW.Data.Entity.DbCompany">
+            <summary>
+            法人团体。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DbCompany.MainBankAccount">
+            <summary>
+            银行基本户信息。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DbCompany.BankAccounts">
+            <summary>
+            银行非基本户信息。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DbCompany.RegisteredAddress">
+            <summary>
+            注册地。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DbCompany.TypeString">
+            <summary>
+            法人团体的类型，如"有限责任公司"，可选。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DbCompany.CorporateId">
+            <summary>
+            法人的Id。可选。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DbCompany.RegisteredAddressId">
+            <summary>
+            注册地址Id。可选。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DbCompany.Capital">
+            <summary>
+            注册资本。可选。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DbCompany.OpenDateTime">
+            <summary>
+            营业期限中起始时间。可选。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DbCompany.ClosedDateTime">
+            <summary>
+            营业期限中终止时间。空着标识永久。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DbCompany.Scope">
+            <summary>
+            经营范围的描述。可选。
+            </summary>
+        </member>
+        <member name="T:OW.Data.Entity.BankAccount">
+            <summary>
+            银行账号。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.BankAccount.BankName">
+            <summary>
+            银行名称。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.BankAccount.ManangerBankName">
+            <summary>
+            开户行名称。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.BankAccount.AccountCode">
+            <summary>
+            账号代码。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.BankAccount.CompanyId">
+            <summary>
+            所属公司Id。
+            </summary>
+        </member>
+        <member name="T:OW.Data.Entity.Contact">
+            <summary>
+            联系人。该数据结构记录了人员简要信息，他们不是系统用户，如社会关系等。
+            新增时 Id 设置为:00000000-0000-0000-0000-000000000000。
+            </summary>
+        </member>
+        <member name="M:OW.Data.Entity.Contact.#ctor">
+            <summary>
+            构造函数。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.Contact.RelationshipName">
+            <summary>
+            关系名。与用户的关系，如 夫妻，证明人，父亲 等，因上下文而不同。最长16字符。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.Contact.OrganizationName">
+            <summary>
+            工作单位/所处组织名称。最长32字符。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.Contact.Communication">
+            <summary>
+            联系方式。最长16字符。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.Contact.UserId">
+            <summary>
+            所属的用户Id。可选，最长128字符。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.Contact.SimpleOrganizationId">
+            <summary>
+            所属简单机构的Id。可能是证明人。可选。
+            </summary>
+        </member>
+        <member name="T:OW.Data.Entity.SimpleOrganizationCatalog">
+            <summary>
+            简单组织机构的类型。
+            </summary>
+        </member>
+        <member name="F:OW.Data.Entity.SimpleOrganizationCatalog.Job">
+            <summary>
+            工作经历。
+            </summary>
+        </member>
+        <member name="F:OW.Data.Entity.SimpleOrganizationCatalog.Education">
+            <summary>
+            教育经历。
+            </summary>
+        </member>
+        <member name="T:OW.Data.Entity.SimpleOrganization">
+            <summary>
+            曾经所从属的组织机构。可能是员工的职业经历也可能是教育经历。
+            新增时 Id 设置为:00000000-0000-0000-0000-000000000000。
+            </summary>
+        </member>
+        <member name="M:OW.Data.Entity.SimpleOrganization.#ctor">
+            <summary>
+            构造函数。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SimpleOrganization.RoleName">
+            <summary>
+            职务/岗位。可选，最长32字符。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SimpleOrganization.StartDateTime">
+            <summary>
+            起始时间。可选，空表示未知。
+            若无法区分起止日期，可以使用 Description 记录。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SimpleOrganization.EndDateTime">
+            <summary>
+            终止时间。可选。
+            若无法区分起止日期，可以使用 Description 记录。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SimpleOrganization.UserId">
+            <summary>
+            所属的用户Id。可选，最长128字符。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SimpleOrganization.Catalog">
+            <summary>
+            简单组织机构的类型。
+            </summary>
+        </member>
+        <member name="T:OW.Data.Entity.RestSchedule">
+            <summary>
+            作息时间表。
+            </summary>
+        </member>
+        <member name="T:OW.Data.Entity.CalendarItemKind">
+            <summary>
+            标识日历每天的类型如是否上班。
+            </summary>
+        </member>
+        <member name="F:OW.Data.Entity.CalendarItemKind.上班">
+            <summary>
+            上班。
+            </summary>
+        </member>
+        <member name="F:OW.Data.Entity.CalendarItemKind.休息">
+            <summary>
+            休息。
+            </summary>
+        </member>
+        <member name="T:OW.Data.Entity.CalendarItem">
+            <summary>
+            日历的数据项详细信息。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.CalendarItem.Duration">
+            <summary>
+            获取工作时长。如果是休息日，则返回 TimeSpan.Zero。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.CalendarItem.Kind">
+            <summary>
+            日历项的类型。
+            具体参加所属类，在不同类中时有不同的解释。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.CalendarItem.Start">
+            <summary>
+            上班时间。
+            具体参加所属类，在不同类中时有不同的解释。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.CalendarItem.End">
+            <summary>
+            下班时间。
+            具体参加所属类，在不同类中时有不同的解释。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.CalendarItem.FlexibleTime">
+            <summary>
+            弹性工作偏移时间，默认是空表示不允许，如果设置2:0:0表示允许最晚迟两小时，此时只要上下班的总工作时间没有少则就算正常出勤。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.CalendarItem.LatetoLerance">
+            <summary>
+            迟到容忍度。不准迟到则设置null或为:0:0:0,接受最多5分钟的迟到不算迟到则设置 0:5:0,默认无容忍度。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.CalendarItem.PayFactor">
+            <summary>
+            薪酬因子，平时默认是1，周末可能是2，节假日是3。免费加班时，设置0。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.CalendarItem.MaxLerance">
+            <summary>
+            最大容忍迟到早退的时长，当日迟到早退合计大于该时长则算矿工。
+            </summary>
+        </member>
+        <member name="M:OW.Data.Entity.CalendarItem.Clone">
+            <summary>
+            获得该对象的深表副本。
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:OW.Data.Entity.DefaultCalendar">
+            <summary>
+            默认的工作日历。
+            </summary>
+        </member>
+        <member name="M:OW.Data.Entity.DefaultCalendar.#ctor">
+            <summary>
+            构造函数。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DefaultCalendar.Item(System.DayOfWeek)">
+            <summary>
+            获取指定星期天数的日历。
+            </summary>
+            <param name="dayOfWeek">获取哪天的默认日历。</param>
+            <returns>日历。</returns>
+        </member>
+        <member name="P:OW.Data.Entity.DefaultCalendar.RowVision">
+            <summary>
+            行版本。表太宽一般就加上。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DefaultCalendar.Monday">
+            <summary>
+            星期一的默认作息时间。
+            其中上班时间仅取Start的时间部分，而上班长度则是 End - Start的结果，这样可以应对跨自然天的作息。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DefaultCalendar.Tuesday">
+            <summary>
+            星期二的默认作息时间。
+            其中上班时间仅取Start的时间部分，而上班长度则是 End - Start的结果，这样可以应对跨自然天的作息。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DefaultCalendar.Wednesday">
+            <summary>
+            星期三的默认作息时间。
+            其中上班时间仅取Start的时间部分，而上班长度则是 End - Start的结果，这样可以应对跨自然天的作息。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DefaultCalendar.Thursday">
+            <summary>
+            星期四的默认作息时间。
+            其中上班时间仅取Start的时间部分，而上班长度则是 End - Start的结果，这样可以应对跨自然天的作息。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DefaultCalendar.Friday">
+            <summary>
+            星期五的默认作息时间。
+            其中上班时间仅取Start的时间部分，而上班长度则是 End - Start的结果，这样可以应对跨自然天的作息。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DefaultCalendar.Saturday">
+            <summary>
+            星期六的默认作息时间。
+            其中上班时间仅取Start的时间部分，而上班长度则是 End - Start的结果，这样可以应对跨自然天的作息。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.DefaultCalendar.Sunday">
+            <summary>
+            星期日的默认作息时间。
+            其中上班时间仅取Start的时间部分，而上班长度则是 End - Start的结果，这样可以应对跨自然天的作息。
+            </summary>
+        </member>
+        <member name="T:OW.Data.Entity.SpecialCalendar">
+            <summary>
+            特别日历，用于指定换休法定节假日。
+            </summary>
+        </member>
+        <member name="M:OW.Data.Entity.SpecialCalendar.FromDefaultCalendar(OW.Data.Entity.DefaultCalendar,System.DateTime)">
+            <summary>
+            从默认日历转换一个新的特别日历。日期是指定日期。
+            </summary>
+            <param name="defaultCalendar"></param>
+            <param name="today">仅日期部分有效。</param>
+            <returns></returns>
+        </member>
+        <member name="M:OW.Data.Entity.SpecialCalendar.#ctor">
+            <summary>
+            构造函数
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SpecialCalendar.CalendarItem">
+            <summary>
+            具体设置，参见 CalendarItem 说明。是工作日时，其中Start是上班时间包含日期和时间，End - Start是工作时长。如果是休息日则Start仅日期部分有效。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SpecialCalendar.OrganizationId">
+            <summary>
+            所属组织机构。
+            </summary>
+        </member>
+        <member name="M:OW.Data.Entity.SpecialCalendar.Clone">
+            <summary>
+            获取当前对象的深表副本。
+            </summary>
+            <returns>当前对象的深表副本。</returns>
+        </member>
+        <member name="T:OW.Data.Entity.SurveysTemplate">
+            <summary>
+            调查问卷的模板类。封装一个专项的问卷调查提问数据。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SurveysTemplate.SurveysQuestionTemplates">
+            <summary>
+            该问卷内所有问题的导航属性。
+            </summary>
+        </member>
+        <member name="T:OW.Data.Entity.QuestionsKind">
+            <summary>
+            每个问题的类型。
+            </summary>
+        </member>
+        <member name="F:OW.Data.Entity.QuestionsKind.Multi">
+            <summary>
+            对先择题，有此标志为多选，无此标志为单选题。
+            </summary>
+        </member>
+        <member name="F:OW.Data.Entity.QuestionsKind.SubKindMask">
+            <summary>
+            获得子类型的掩码。
+            </summary>
+        </member>
+        <member name="F:OW.Data.Entity.QuestionsKind.Judgment">
+            <summary>
+            判断题。
+            </summary>
+        </member>
+        <member name="F:OW.Data.Entity.QuestionsKind.Choice">
+            <summary>
+            选择题。单选题。
+            </summary>
+        </member>
+        <member name="F:OW.Data.Entity.QuestionsKind.MultiChoice">
+            <summary>
+            多选题。
+            </summary>
+        </member>
+        <member name="F:OW.Data.Entity.QuestionsKind.Describe">
+            <summary>
+            问答题。
+            </summary>
+        </member>
+        <member name="T:OW.Data.Entity.SurveysQuestionTemplate">
+            <summary>
+            问卷调查的每个问题的设置数据。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SurveysQuestionTemplate.SurveysTemplateId">
+            <summary>
+            所属调查问卷的Id。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SurveysQuestionTemplate.SurveysTemplate">
+            <summary>
+            所属调查问卷的导航属性。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SurveysQuestionTemplate.SurveysTemplateAnswerItems">
+            <summary>
+            答案项。仅对选择题有效。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SurveysQuestionTemplate.QuestionTitle">
+            <summary>
+            对问题的说明。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SurveysQuestionTemplate.OrderNum">
+            <summary>
+            此问题出现的顺序号。越小越靠前。不必连续，也未必是正数。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SurveysQuestionTemplate.Kind">
+            <summary>
+            问题的类型。
+            </summary>
+        </member>
+        <member name="T:OW.Data.Entity.SurveysAnswerTemplate">
+            <summary>
+            每个答案的设置数据。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SurveysAnswerTemplate.SurveysQuestionTemplateId">
+            <summary>
+            所属问题的Id。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SurveysAnswerTemplate.SurveysQuestionTemplate">
+            <summary>
+            所属问题。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SurveysAnswerTemplate.AnswerTitle">
+            <summary>
+            答案的标题。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SurveysAnswerTemplate.OrderNum">
+            <summary>
+            此项出现的顺序号。越小越靠前。不必连续，也未必是正数。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SurveysAnswerTemplate.AllowAdditional">
+            <summary>
+            如果此项是一个选择题的答案项，为true时标识此项是一个允许填写文字的附加项。例如：其它，选中后要用户填写一段文字。
+            </summary>
+        </member>
+        <member name="T:OW.ViewModel.PagingControlBaseViewModel">
+            <summary>
+            需要分页返回信息的控制信息封装类。
+            </summary>
+        </member>
+        <member name="P:OW.ViewModel.PagingControlBaseViewModel.Index">
+            <summary>
+            返回记录在结果集合中的起始索引，第一个的索引是0，以此类推。
+            </summary>
+        </member>
+        <member name="P:OW.ViewModel.PagingControlBaseViewModel.Count">
+            <summary>
+            返回最多多少条数据。
+            如果返回所有数据可以使用 int.MaxValue。
+            </summary>
+        </member>
+        <member name="P:OW.ViewModel.PagingControlBaseViewModel.UserState">
+            <summary>
+            追加的控制信息。一般是排序的规则，也可不用。
+            </summary>
+        </member>
+        <member name="T:OW.ViewModel.PagingResult`1">
+            <summary>
+            返回分页数据的基类。
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:OW.ViewModel.PagingResult`1.#ctor">
+            <summary>
+            构造函数。
+            </summary>
+        </member>
+        <member name="P:OW.ViewModel.PagingResult`1.MaxCount">
+            <summary>
+            数据总共的记录数。
+            </summary>
+        </member>
+        <member name="P:OW.ViewModel.PagingResult`1.UserState">
+            <summary>
+            返回 PagingControlBaseViewModel.UserState 的内容。便于客户端知道此记录集的附加信息。
+            </summary>
+        </member>
+        <member name="P:OW.ViewModel.PagingResult`1.Datas">
+            <summary>
+            返回数据的集合。
+            </summary>
+        </member>
+    </members>
+</doc>

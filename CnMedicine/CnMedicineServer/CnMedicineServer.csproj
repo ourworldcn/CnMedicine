@@ -34,7 +34,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>Content\CnMedicineServer.xml</DocumentationFile>
+    <DocumentationFile>bin\CnMedicineServer.xml</DocumentationFile>
     <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -45,6 +45,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\CnMedicineServer.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -207,12 +208,14 @@
     <Compile Include="Areas\HelpPage\SampleGeneration\SampleDirection.cs" />
     <Compile Include="Areas\HelpPage\SampleGeneration\TextSample.cs" />
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
+    <Compile Include="BLL\Insomnia.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\CnMedicineController.cs" />
     <Compile Include="Controllers\ControllerBase.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
     <Compile Include="Dao\BaseModels.cs" />
+    <Compile Include="Dao\InsomniaModels.cs" />
     <Compile Include="Dao\SpecialCasesModels.cs" />
     <Compile Include="Dao\SurveysModels.cs" />
     <Compile Include="Global.asax.cs">
@@ -239,6 +242,12 @@
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\CnMedicineServer.xml" />
+    <Content Include="Content\剂量矫正-失眠.txt" />
+    <Content Include="Content\药物加味-失眠.txt" />
+    <Content Include="Content\药物输出-失眠.txt" />
+    <Content Include="Content\评分表1-失眠.txt" />
+    <Content Include="Content\评分表2-失眠.txt" />
+    <Content Include="Content\问题定义-失眠.txt" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
@@ -275,7 +284,9 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
-    <Content Include="Web.config" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>

@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="CnMedicineServer" Class="DataClasses1DataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Connection Mode="AppSettings" ConnectionString="Data Source=DESKTOP-AI1JMCB\SQLEXPRESS2016,31433;Initial Catalog=CnMedicineServer;Integrated Security=True" SettingsObjectName="HelpTest.Properties.Settings" SettingsPropertyName="CnMedicineServerConnectionString" Provider="System.Data.SqlClient" />
+  <Table Name="dbo.SurveysAnswerTemplates" Member="SurveysAnswerTemplates">
+    <Type Name="SurveysAnswerTemplates">
+      <Column Name="Id" Type="System.Guid" DbType="UniqueIdentifier NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="SurveysQuestionTemplateId" Type="System.Guid" DbType="UniqueIdentifier NOT NULL" CanBeNull="false" />
+      <Column Name="AnswerTitle" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+      <Column Name="OrderNum" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
+      <Column Name="AllowAdditional" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
+      <Column Name="Name" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+      <Column Name="ShortName" Type="System.String" DbType="NVarChar(8)" CanBeNull="true" />
+      <Column Name="Description" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+      <Column Name="CreateUtc" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="UserState" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
+    </Type>
+  </Table>
+</Database>

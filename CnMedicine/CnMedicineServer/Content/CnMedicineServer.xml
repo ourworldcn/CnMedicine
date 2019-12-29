@@ -481,6 +481,11 @@
             </summary>
             <param name="documentPath">The physical path to XML document.</param>
         </member>
+        <member name="T:CnMedicineServer.Bll.InsomniaMethod">
+            <summary>
+            封装失眠的算法。
+            </summary>
+        </member>
         <member name="T:CnMedicineServer.Controllers.SpecialCasesController">
             <summary>
             专病功能控制器。
@@ -488,10 +493,30 @@
         </member>
         <member name="M:CnMedicineServer.Controllers.SpecialCasesController.GetList(OW.ViewModel.PagingControlBaseViewModel)">
             <summary>
-            获取所有专病的列表。
+            获取所有专病的列表。暂时不用。
             </summary>
             <param name="model">控制分页数据返回的参数。</param>
             <returns></returns>
+        </member>
+        <member name="M:CnMedicineServer.Controllers.SpecialCasesController.GetLastSurveys(System.String)">
+            <summary>
+            获取用户最后的调查结果即最后一次诊断的结果。模板数据还是要调用 FirstSurveysTemplate 获取。这里给出的是实例数据。
+            </summary>
+            <param name="userId">用户Id，最长128个字符。不可为空。</param>
+            <return></return>
+        </member>
+        <member name="M:CnMedicineServer.Controllers.SpecialCasesController.GetFirstSurveysTemplate">
+            <summary>
+            获取初诊的调查数据模板。
+            </summary>
+        </member>
+        <member name="M:CnMedicineServer.Controllers.SpecialCasesController.SetSurveys(OW.Data.Entity.Surveys)">
+            <summary>
+            设置或追加调查数据。
+            注释：没用Put,为通用性用Post。轶事，我居然听过前端告诉我没用过Put,不会。
+            </summary>
+            <param name="model">Id设置为全0，标识添加。</param>
+            <returns>200时返回一个结论对象。</returns>
         </member>
         <member name="T:CnMedicineServer.Controllers.OwApiControllerBase">
             <summary>
@@ -527,7 +552,7 @@
         </member>
         <member name="T:CnMedicineServer.Models.SpecialCases">
             <summary>
-            专病种类。
+            专病种类。暂时未用，因仅单一病种。未来有归类作用。
             </summary>
         </member>
         <member name="P:CnMedicineServer.Models.SpecialCases.SurveysTemplate">
@@ -538,6 +563,214 @@
         <member name="T:CnMedicineServer.Models.SpecialCasesItem">
             <summary>
             专病的诊断模型。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.SpecialCasesItem.Conversion11s">
+            <summary>
+            评分表1导航属性。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.SpecialCasesItem.Conversion12s">
+            <summary>
+            评分表2导航属性。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.SpecialCasesItem.CnDrugCorrections">
+            <summary>
+            药物输出导航属性。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.SpecialCasesItem.DrugConversion2s">
+            <summary>
+            药物加味导航属性。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.SpecialCasesItem.CnDrugCorrection">
+            <summary>
+            药物剂量矫正导航属性。
+            </summary>
+        </member>
+        <member name="T:CnMedicineServer.Models.Conversion11">
+            <summary>
+            评分表1。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.Conversion11.SpecialCasesItem1">
+            <summary>
+            所属专病项Id。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.Conversion11.SpecialCasesItem">
+            <summary>
+            所属专病项导航属性。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.Conversion11.CnSymptomNumber">
+            <summary>
+            症候编号。例如:"3"。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.Conversion11.CnSymptom">
+            <summary>
+            症候。例如：“入睡困难，精神亢奋”。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.Conversion11.CnScore1">
+            <summary>
+            脏腑评分。例如:"心+1，肝+1，胆+1，脾+1"。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.Conversion11.CnScore2">
+            <summary>
+            证型评分。例如:"火亢+1，气郁+1，湿热+1，脾胃不和+1，少阳枢机不利+1，痰热+1"。
+            </summary>
+        </member>
+        <member name="T:CnMedicineServer.Models.Conversion12">
+            <summary>
+            评分表2。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.Conversion12.SpecialCasesItem1">
+            <summary>
+            所属专病项Id。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.Conversion12.SpecialCasesItem">
+            <summary>
+            所属专病项导航属性。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.Conversion12.MatchString">
+            <summary>
+            症候编号。例如:"3，100，104，113，122"。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.Conversion12.CnScore">
+            <summary>
+            规则。例如:"肝+8；气郁+8"。
+            </summary>
+        </member>
+        <member name="T:CnMedicineServer.Models.DrugConversion">
+            <summary>
+            药物输出表。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.DrugConversion.SpecialCasesItem1">
+            <summary>
+            所属专病项Id。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.DrugConversion.SpecialCasesItem">
+            <summary>
+            所属专病项导航属性。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.DrugConversion.CnVisceral">
+            <summary>
+            脏腑。目前这个字段冗余无用。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.DrugConversion.CnPhenomenon">
+            <summary>
+            证型结论。目前该字段冗余无用。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.DrugConversion.CnMedicineConclusions">
+            <summary>
+            输出诊断。
+            例如:"心火亢盛"。目前用这个字段匹配。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.DrugConversion.CnDrugString">
+            <summary>
+            药物组合1。当其为第一诊断时。
+            例如:"淡豆豉9栀子9黄连3黄芩9炒酸枣仁15远志9合欢皮15夜交藤30"。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.DrugConversion.CnDrugString2">
+            <summary>
+            药物组合2。当其为第二诊断时。
+            例如:"淡豆豉9栀子9黄连3黄芩9炒酸枣仁15远志9合欢皮15夜交藤30"。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.DrugConversion.CnDrugString3">
+            <summary>
+            药物组合3。当其为并列第一诊断时。
+            例如:"淡豆豉9栀子9黄连3黄芩9炒酸枣仁15远志9合欢皮15夜交藤30"。
+            </summary>
+        </member>
+        <member name="T:CnMedicineServer.Models.DrugConversion2">
+            <summary>
+            药物加味表。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.DrugConversion2.SpecialCasesItem1">
+            <summary>
+            所属专病项Id。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.DrugConversion2.SpecialCasesItem">
+            <summary>
+            所属专病项导航属性。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.DrugConversion2.CnVisceral">
+            <summary>
+            脏腑。目前这个字段冗余无用。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.DrugConversion2.CnPhenomenon">
+            <summary>
+            证型结论。目前该字段冗余无用。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.DrugConversion2.CnMedicineConclusions">
+            <summary>
+            输出诊断。
+            例如:"心火亢盛"。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.DrugConversion2.CnDrugString">
+            <summary>
+            药物组合1。当其为第一诊断时。
+            例如:"淡豆豉9栀子9黄连3黄芩9炒酸枣仁15远志9合欢皮15夜交藤30"。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.DrugConversion2.CnDrugString2">
+            <summary>
+            药物组合2。当其为第二诊断时。
+            例如:"淡豆豉9栀子9黄连3黄芩9炒酸枣仁15远志9合欢皮15夜交藤30"。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.DrugConversion2.CnDrugString3">
+            <summary>
+            药物组合3。当其为并列第一诊断时。
+            例如:"淡豆豉9栀子9黄连3黄芩9炒酸枣仁15远志9合欢皮15夜交藤30"。
+            </summary>
+        </member>
+        <member name="T:CnMedicineServer.Models.CnDrugCorrection">
+            <summary>
+            药物剂量矫正。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.CnDrugCorrection.SpecialCasesItem1">
+            <summary>
+            所属专病项Id。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.CnDrugCorrection.SpecialCasesItem">
+            <summary>
+            所属专病项导航属性。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.CnDrugCorrection.Age">
+            <summary>
+            年龄阈值。按此字段升序排序，最后一个小于该阈值的项被认为匹配。
+            </summary>
+        </member>
+        <member name="P:CnMedicineServer.Models.CnDrugCorrection.Factor">
+            <summary>
+            药物剂量矫正因子。如:0.666666。
             </summary>
         </member>
         <member name="T:OW.Data.Entity.EntityWithGuid">
@@ -1065,6 +1298,12 @@
             该问卷内所有问题的导航属性。
             </summary>
         </member>
+        <member name="P:OW.Data.Entity.SurveysTemplate.Surveys">
+            <summary>
+            改模版吧所属的文件实例。
+            尽量少访问。
+            </summary>
+        </member>
         <member name="T:OW.Data.Entity.QuestionsKind">
             <summary>
             每个问题的类型。
@@ -1073,6 +1312,11 @@
         <member name="F:OW.Data.Entity.QuestionsKind.Multi">
             <summary>
             对先择题，有此标志为多选，无此标志为单选题。
+            </summary>
+        </member>
+        <member name="F:OW.Data.Entity.QuestionsKind.AllowEmpty">
+            <summary>
+            有该标志，这个问题不填写答案，否则需要填写。
             </summary>
         </member>
         <member name="F:OW.Data.Entity.QuestionsKind.SubKindMask">
@@ -1135,6 +1379,11 @@
             问题的类型。
             </summary>
         </member>
+        <member name="P:OW.Data.Entity.SurveysQuestionTemplate.UserState">
+            <summary>
+            内部逻辑后期使用的数据。
+            </summary>
+        </member>
         <member name="T:OW.Data.Entity.SurveysAnswerTemplate">
             <summary>
             每个答案的设置数据。
@@ -1163,6 +1412,90 @@
         <member name="P:OW.Data.Entity.SurveysAnswerTemplate.AllowAdditional">
             <summary>
             如果此项是一个选择题的答案项，为true时标识此项是一个允许填写文字的附加项。例如：其它，选中后要用户填写一段文字。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SurveysAnswerTemplate.UserState">
+            <summary>
+            内部逻辑后期使用的数据。
+            具体到该项目，例如"编号:21;症候:侧头痛;脏腑评分：心+1，肝+1，胆+1，胃+1，小肠+1;证型评分:火亢+1，气郁+1，湿热+1，脾胃不和+1，少阳枢机不利+1，痰热+1"，为避免输入错误分割时能理解中文符号。
+            这里未来不排除是记录了一个Id,连接到其它表。但无论如何，这个就是通用调查问卷子系统和其它子系统的一种连接手段，问卷子系统本身不考虑。
+            </summary>
+        </member>
+        <member name="T:OW.Data.Entity.Surveys">
+            <summary>
+            调查问卷的实例数据。每个用户填写一份问卷就有这个类的一个实例，对应数据库的一条记录。
+            </summary>
+        </member>
+        <member name="M:OW.Data.Entity.Surveys.#ctor">
+            <summary>
+            构造函数。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.Surveys.TemplateId">
+            <summary>
+            对应调查问卷模板Id。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.Surveys.SurveysAnswers">
+            <summary>
+            答案项的导航属性。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.Surveys.UserState">
+            <summary>
+            这是通用调查问卷子系统与其它系统交互使用的属性。
+            </summary>
+        </member>
+        <member name="T:OW.Data.Entity.SurveysAnswer">
+            <summary>
+            答案项实例。
+            </summary>
+        </member>
+        <member name="M:OW.Data.Entity.SurveysAnswer.#ctor">
+            <summary>
+            构造函数。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SurveysAnswer.TemplateId">
+            <summary>
+            对选择题绑定答案模板Id，绑定了该Id对就意味着选择了该项。显然对复选题有多个该对象的实例对应一个问题。
+            其它题型绑定到问题模板Id。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SurveysAnswer.SurveysId">
+            <summary>
+            所属问卷实例Id。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SurveysAnswer.Surveys">
+            <summary>
+            所属问卷实例的导航属性。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SurveysAnswer.Guts">
+            <summary>
+            对问答题是答题的文字。对选择题允许扩展的项，这里填写额外说明文字。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SurveysAnswer.UserState">
+            <summary>
+            额外附属信息。这是通用调查问卷子系统与其它系统交互使用的属性。
+            对此项目，这里是个整型值，复诊,时有效为2，无效为1，没选是0.初诊时忽略此项。
+            </summary>
+        </member>
+        <member name="T:OW.Data.Entity.SurveysConclusion">
+            <summary>
+            调查的结论。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SurveysConclusion.Conclusion">
+            <summary>
+            结论字符串。
+            </summary>
+        </member>
+        <member name="P:OW.Data.Entity.SurveysConclusion.DebugMessage">
+            <summary>
+            调试用信息。
             </summary>
         </member>
         <member name="T:OW.ViewModel.PagingControlBaseViewModel">

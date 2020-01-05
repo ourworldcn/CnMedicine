@@ -7,6 +7,7 @@ using System.Data.Entity.Infrastructure;
 using System.Data.OleDb;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -43,6 +44,13 @@ namespace HelpTest
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            var str = "2";
+            var i = Convert.ChangeType(str, typeof(int));
+            //var mi = typeof(Guid).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy, null, new Type[] { typeof(string) }, null);
+            //object id;
+            //if (null != mi)
+            //    id = mi.Invoke(null, new object[] { str });
+
             int[] ary1 = new int[] { 1, 2 };
             int[] ary2 = Enumerable.Range(3, 2).ToArray();
             var coll = from tmp1 in ary1

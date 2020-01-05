@@ -10,6 +10,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Web.Http;
+using System.Web.Http.Cors;
 using System.Web.Http.Description;
 
 namespace CnMedicineServer.Controllers
@@ -18,22 +19,44 @@ namespace CnMedicineServer.Controllers
     /// 专病功能控制器。
     /// </summary>
     [RoutePrefix("api/SpecialCasesInsomnia")]
-    //[EnableCors]
+    [EnableCors("*", "*", "*")/*crossDomain: true,*/]
     public class SpecialCasesInsomniaController : OwApiControllerBase
     {
         /// <summary>
-        /// 获取所有专病的列表。暂时不用。
+        /// 获取所有专病的列表。
         /// </summary>
         /// <param name="model">控制分页数据返回的参数。</param>
-        /// <returns></returns>
-        [Route("List")]
-        [ResponseType(typeof(PagingResult<SpecialCases>))]
+        /// <returns>专病列表。</returns>
+        [Route("ListTemplate")]
+        [ResponseType(typeof(PagingResult<SurveysTemplate>))]
         [HttpGet]
-        [ApiExplorerSettings(IgnoreApi = true)]
         public IHttpActionResult GetList([FromUri]PagingControlBaseViewModel model)
         {
-            var result = DbContext.SpecialCases.ToList();
-            return Ok(result);
+            var coll = DbContext.SurveysTemplates.OrderBy(c => c.Name);
+            var result = Paging(coll, model);
+            foreach (var item in result.Content.Datas)
+            {
+                item.Questions = null;
+            }
+
+            return result;
+        }
+
+        private Surveys GetLastSurveysCore(string userId)
+        {
+            Surveys result;
+            DateTime dt = DateTime.UtcNow.Date;
+            var last = SubMonth(dt, 3);
+            var coll = DbContext.Set<Surveys>().Where(c => c.UserId == userId && c.CreateUtc >= last).OrderByDescending(c => c.CreateUtc).Take(1).ToArray();
+            result = coll.FirstOrDefault();
+            if (null != result && !string.IsNullOrWhiteSpace(result.UserState))
+            {
+                var ary = EntityUtil.GetTuples(result.UserState);
+                var flag = ary.FirstOrDefault(c => c.Item1 == "复诊")?.Item2 ?? 0;
+                if (flag > 0)
+                    result = null;
+            }
+            return result;
         }
 
         /// <summary>
@@ -52,7 +75,7 @@ namespace CnMedicineServer.Controllers
                 var last = SubMonth(dt, 3);
                 var coll = DbContext.Set<Surveys>().Where(c => c.UserId == userId && c.CreateUtc >= last).OrderByDescending(c => c.CreateUtc).Take(1).ToArray();
                 var result = coll.FirstOrDefault();
-                if (null != result)
+                if (null != result && !string.IsNullOrWhiteSpace(result.UserState))
                 {
                     var ary = EntityUtil.GetTuples(result.UserState);
                     var flag = ary.FirstOrDefault(c => c.Item1 == "复诊")?.Item2 ?? 0;
@@ -88,7 +111,7 @@ namespace CnMedicineServer.Controllers
                   if (QuestionsKind.Describe == c.Kind)
                       r1.TemplateId = c.Id;
                   else
-                      r1.TemplateId = c.AnswerTemplates.Skip(rnd.Next(c.AnswerTemplates.Count)).FirstOrDefault()?.Id ?? Guid.Empty;
+                      r1.TemplateId = c.Answers.Skip(rnd.Next(c.Answers.Count)).FirstOrDefault()?.Id ?? Guid.Empty;
                   return r1;
               });
             result.SurveysAnswers = coll.ToList();
@@ -103,7 +126,23 @@ namespace CnMedicineServer.Controllers
         [ResponseType(typeof(SurveysTemplate))]
         public IHttpActionResult GetSurveysTemplate([FromUri]Guid? id = null)
         {
-            SurveysTemplate queryResult = DbContext.SurveysTemplates.FirstOrDefault();
+            var db = DbContext;
+            var proxy = db.Configuration.ProxyCreationEnabled;
+            db.Configuration.ProxyCreationEnabled = false;
+            if (null == id)
+                id = Guid.Empty;
+            try
+            {
+                var query = DbContext.SurveysTemplates.Include("Questions").Include("Questions.Answers");
+                SurveysTemplate queryResult = query.Where(c => c.Id == id.Value).FirstOrDefault();
+                if (null == queryResult)
+                    queryResult = query.Where(c => c.Name == "失眠").FirstOrDefault();
+                return Ok(queryResult);
+            }
+            finally
+            {
+                db.Configuration.ProxyCreationEnabled = proxy;
+            }
             /*
              * Access-Control-Allow-Headers
             Content-Type, api_key, Authorization
@@ -112,8 +151,6 @@ namespace CnMedicineServer.Controllers
             Access-Control-Allow-Origin
             *
             */
-            SurveysTemplate result = (SurveysTemplate)queryResult.Clone();  //XML序列化要增加KnownTypes
-            return Ok(result);
         }
 
         /// <summary>
@@ -131,7 +168,8 @@ namespace CnMedicineServer.Controllers
             {
                 return BadRequest(ModelState);
             }
-
+            if (string.IsNullOrWhiteSpace(model.UserId))
+                return BadRequest("UserId不可为空。");
             try
             {
                 model.GeneratedIdIfEmpty();
@@ -142,10 +180,29 @@ namespace CnMedicineServer.Controllers
                         item.SurveysId = model.Id;
                 }
 
-                var methods = new InsomniaMethod();
-                DbContext.Set<Surveys>().Add(model);
+                var last = GetLastSurveysCore(model.UserId);
+                if (null != last)
+                    model.UserState = "复诊1";
+                else
+                    model.UserState = "复诊0";
+                model= DbContext.Set<Surveys>().Add(model);
                 DbContext.SaveChanges();
-                var result = methods.GetFirstResult(model, DbContext);
+                var strName = DbContext.SurveysTemplates.Find(model.TemplateId)?.Name;
+                CnMedicineAlgorithm algs;
+                SurveysConclusion result = null;
+                switch (strName)
+                {
+                    case "失眠":
+                        algs = new InsomniaAlgorithm();
+                        result = algs.GetResult(model, DbContext);
+                        break;
+                    case "鼻炎":
+                        algs = new RhinitisMethods();
+                        result = algs.GetResult(model, DbContext);
+                        break;
+                    default:
+                        break;
+                }
                 DbContext.SurveysConclusions.Add(result);
                 DbContext.SaveChanges();
                 return Ok(result);
@@ -154,6 +211,24 @@ namespace CnMedicineServer.Controllers
             {
                 return InternalServerError(err);
             }
+        }
+
+        /// <summary>
+        /// 获取指定Id的诊断结论。
+        /// </summary>
+        /// <param name="id">结论的Id。一般来源于 SetSurveys 的结果。</param>
+        /// <returns>诊断结论。</returns>
+        [Route("Conclusions")]
+        [HttpGet]
+        [ResponseType(typeof(SurveysConclusion))]
+        public IHttpActionResult GetConclusions([FromUri]Guid id)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var result = DbContext.SurveysConclusions.Find(id);
+            return Ok(result);
         }
     }
 

@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Web.Helpers;
 
 namespace CnMedicineServer.Bll
 {
@@ -18,6 +19,34 @@ namespace CnMedicineServer.Bll
         {
             Dictionary<string, int> result = new Dictionary<string, int>();
             return result;
+        }
+
+        /// <summary>
+        /// 获取一个这是第几次诊断。
+        /// </summary>
+        /// <param name="surveys"></param>
+        /// <returns>0初诊，1复诊。</returns>
+        public static int GetDiagnosisCount(this Surveys surveys)
+        {
+            var ary = EntityUtil.GetTuples(surveys.UserState);
+            var flag = ary.FirstOrDefault(c => c.Item1 == "诊次")?.Item2 ?? 0;
+            return (int)flag;
+        }
+
+        /// <summary>
+        /// 设置诊断次数。
+        /// </summary>
+        /// <param name="surveys"></param>
+        /// <param name="count">0初诊，1复诊。</param>
+        public static void SetDiagnosisCount(this Surveys surveys, int count)
+        {
+            var ary = EntityUtil.GetTuples(surveys.UserState);
+            var flag = ary.FirstOrDefault(c => c.Item1 == "诊次");
+            if (null != flag)
+                ary.Remove(flag);
+            flag = Tuple.Create("诊次", (decimal)count);
+            ary.Add(flag);
+            surveys.UserState = string.Join(",", ary.Select(c => $"{c.Item1}{c.Item2.ToString()}"));
         }
     }
 
@@ -56,6 +85,34 @@ namespace CnMedicineServer.Bll
         }
 
         /// <summary>
+        /// 获取脏腑-证型组合。目前算法是取两个集合的评分最高的项，作为新集合，求笛卡尔积。
+        /// </summary>
+        /// <param name="cnVisceral"></param>
+        /// <param name="cnPhenomenon"></param>
+        /// <returns>获取的脏腑-证型组合的集合。</returns>
+        public static List<Tuple<string, string, int>> GetCnVPs(List<Tuple<string, decimal>> cnVisceral, List<Tuple<string, decimal>> cnPhenomenon)
+        {
+            List<Tuple<string, string, int>> result = new List<Tuple<string, string, int>>();
+            cnVisceral.Sort((l, r) => -decimal.Compare(l.Item2, r.Item2));
+            var maxVisceralScore = cnVisceral.FirstOrDefault()?.Item2 ?? 0;
+
+            cnPhenomenon.Sort((l, r) => -decimal.Compare(l.Item2, r.Item2));
+            var maxPhenomenonScore = cnPhenomenon.FirstOrDefault()?.Item2 ?? 0;
+
+            var coll = from tmp1 in cnVisceral.TakeWhile(c => c.Item2 >= maxVisceralScore)
+                       from tmp2 in cnPhenomenon.TakeWhile(c => c.Item2 >= maxPhenomenonScore)
+                       select Tuple.Create(tmp1.Item1, tmp2.Item1);
+            var count = coll.Count();
+            result.AddRange(coll.Select(c => Tuple.Create(c.Item1, c.Item2, count)));
+            return result;
+        }
+
+        public static void Fill(IEnumerable<Tuple<string, string>> src, List<InsomniaCnDrugConversion> drugs)
+        {
+
+        }
+
+        /// <summary>
         /// 年龄。
         /// </summary>
         public decimal Age { get; set; }
@@ -75,8 +132,33 @@ namespace CnMedicineServer.Bll
         /// <summary>
         /// 治疗无效条目。
         /// </summary>
-        public List<InsomniaConversion11> Invalids11 { get; set; } = new List<InsomniaConversion11>();
+        public List<InsomniaConversion11> Invalid11s { get; set; } = new List<InsomniaConversion11>();
 
+
+        List<InsomniaCnDrugConversion> _InvalidDrugs;
+
+        /// <summary>
+        /// 针对无效项的药物输出。
+        /// </summary>
+        public List<InsomniaCnDrugConversion> InvalidDrugs
+        {
+            get
+            {
+                if (null == _InvalidDrugs)
+                {
+                    List<Tuple<string, decimal>> cnVisceral = new List<Tuple<string, decimal>>();
+                    List<Tuple<string, decimal>> cnPhenomenon = new List<Tuple<string, decimal>>();
+                    Fill(Invalid11s, null, cnVisceral, cnPhenomenon);
+                    var cnVPs = GetCnVPs(cnVisceral, cnPhenomenon);
+
+                    var coll = InsomniaCnDrugConversion.DefaultCollection.Join(cnVPs, c => Tuple.Create(c.CnMedicineVisceral, c.CnMedicinePhenomenon), c => Tuple.Create(c.Item1, c.Item2), (c, c1) => c);
+                    _InvalidDrugs = new List<InsomniaCnDrugConversion>(coll);
+                }
+                return _InvalidDrugs;
+            }
+        }
+
+        public int MyProperty { get; set; }
         List<InsomniaConversion12> _InsomniaConversion12s;
 
         /// <summary>
@@ -135,6 +217,23 @@ namespace CnMedicineServer.Bll
         /// </summary>
         public List<Tuple<string, decimal>> MaxPhenomenons { get; set; }
 
+        public List<Tuple<string, string, int>> _CnVP;
+
+        /// <summary>
+        /// 诊断脏腑-证型。
+        /// </summary>
+        public List<Tuple<string, string, int>> CnVP
+        {
+            get
+            {
+                if (null == _CnVP)
+                {
+
+                }
+                return _CnVP;
+            }
+        }
+
         /// <summary>
         /// 刷新药物输出表的项。
         /// </summary>
@@ -156,7 +255,7 @@ namespace CnMedicineServer.Bll
             var phenomennoAry = PhenomenonScores.GroupBy(c => c.Item1).Select(c => Tuple.Create(c.Key, c.Sum(c1 => c1.Item2))).OrderByDescending(c => c.Item2).ToArray();
             var maxPhenomenon = phenomennoAry.FirstOrDefault()?.Item2 ?? 0;
             MaxPhenomenons = phenomennoAry.Where(c => c.Item2 >= maxPhenomenon).ToList();
-            //数字逻辑上可能出现例如:心，肝并列第一；且火亢，阴虚并列第一。此时药物输出算作4个么？心-火亢，心-阴虚，肝-火亢，肝-阴虚
+            //数字逻辑上可能出现例如:心，肝并列第一；且火亢，阴虚并列第一。此时药物输出算作4个么？心-火亢，心-阴虚，肝-火亢，肝-阴虚,结算笛卡尔积
             var coll = from tmp in MaxVicerals
                        from tmp1 in MaxPhenomenons
                        select Tuple.Create(tmp.Item1, tmp1.Item1);  //无论如何先获取笛卡尔积
@@ -199,19 +298,19 @@ namespace CnMedicineServer.Bll
                     var count = MaxVicerals.Count * MaxVicerals.Count;
                     if (1 == count)    //唯一诊断
                     {
-                        var coll = InsomniaCnDrugConversions.SelectMany(c => c.CnDrugProperties1).Concat(InsomniaCnDrugConversion2s.SelectMany(c => c.CnDrugProperties))
+                        var coll = InsomniaCnDrugConversions.SelectMany(c => c.CnDrugProperties1).Concat(InsomniaCnDrugConversion2s.SelectMany(c => c.CnDrugProperties)).Concat(InvalidDrugs.SelectMany(c => c.CnDrugProperties2))
                             .GroupBy(c => c.Item1).Select(c => Tuple.Create(c.Key, c.Max(c1 => c1.Item2)));
                         _CnDrugBase.AddRange(coll);
                     }
                     else if (2 == count)   //两个并列诊断
                     {
-                        var coll = InsomniaCnDrugConversions.SelectMany(c => c.CnDrugProperties3).Concat(InsomniaCnDrugConversion2s.SelectMany(c => c.CnDrugProperties))
+                        var coll = InsomniaCnDrugConversions.SelectMany(c => c.CnDrugProperties3).Concat(InsomniaCnDrugConversion2s.SelectMany(c => c.CnDrugProperties)).Concat(InvalidDrugs.SelectMany(c => c.CnDrugProperties2))
                             .GroupBy(c => c.Item1).Select(c => Tuple.Create(c.Key, c.Max(c1 => c1.Item2)));
                         _CnDrugBase.AddRange(coll);
                     }
                     else if (2 < count)    //3个或更多诊断
                     {
-                        var coll = InsomniaCnDrugConversions.SelectMany(c => c.CnDrugProperties2).Concat(InsomniaCnDrugConversion2s.SelectMany(c => c.CnDrugProperties))
+                        var coll = InsomniaCnDrugConversions.SelectMany(c => c.CnDrugProperties2).Concat(InsomniaCnDrugConversion2s.SelectMany(c => c.CnDrugProperties)).Concat(InvalidDrugs.SelectMany(c => c.CnDrugProperties2))
                             .GroupBy(c => c.Item1).Select(c => Tuple.Create(c.Key, c.Max(c1 => c1.Item2)));
                         _CnDrugBase.AddRange(coll);
                     }
@@ -247,10 +346,11 @@ namespace CnMedicineServer.Bll
         {
             StringBuilder sb = new StringBuilder();
             string result;
-            sb.AppendLine($"无效项:{string.Join(";", Invalids11.Select(c => c.ToString()))}");
+            sb.AppendLine($"诊断： ({string.Join(";", InsomniaConversion11s.Select(c => c.ToString()))}) ");
             sb.AppendLine($"脏腑评分:{string.Join(";", MaxVicerals.Select(c => c.ToString()))};症候评分:{string.Join(";", MaxPhenomenons.Select(c => c.ToString()))}");
             sb.AppendLine($"评分表2:{string.Join(";", InsomniaConversion12s.Select(c => c.ToString()))}");
             sb.AppendLine($"药物加味:{string.Join(";", InsomniaCnDrugConversion2s.Select(c => c.ToString()))}");
+            sb.AppendLine($"无效项:{string.Join(";", Invalid11s.Select(c => c.ToString()))}");
             result = sb.ToString();
             return result;
         }
@@ -259,7 +359,7 @@ namespace CnMedicineServer.Bll
     /// <summary>
     /// 封装失眠的算法。
     /// </summary>
-    public class InsomniaMethod
+    public class InsomniaAlgorithm: CnMedicineAlgorithm
     {
 
         /// <summary>
@@ -268,14 +368,15 @@ namespace CnMedicineServer.Bll
         /// <param name="surveys"></param>
         /// <param name="db"></param>
         /// <returns></returns>
-        public SurveysConclusion GetFirstResult(Surveys surveys, ApplicationDbContext db)
+        protected override SurveysConclusion GetResultCore(Surveys surveys, ApplicationDbContext db)
         {
             SurveysConclusion result = new SurveysConclusion() { SurveysId = surveys.Id };
             db.Set<SurveysAnswerTemplate>().Load();
             var answerTemplates = db.Set<SurveysAnswerTemplate>();
-            var coll = GetFirst(surveys, db);
+            var coll = GetFirstCore(surveys, db);
             result.Conclusion = string.Join(",", coll.CnDrugResult.Select(c => $"{c.Item1}{c.Item2}"));
             result.ExtendedInfomation = coll.GetDescription();
+            result.Description = $"{string.Join(",", coll.InsomniaCnDrugConversions.Select(c => c.CnMedicineConclusions).Distinct())}";
             return result;
         }
 
@@ -284,7 +385,7 @@ namespace CnMedicineServer.Bll
         /// </summary>
         /// <param name="surveys"></param>
         /// <param name="db"></param>
-        InsomniaAnalysisData GetFirst(Surveys surveys, ApplicationDbContext db)
+        InsomniaAnalysisData GetFirstCore(Surveys surveys, ApplicationDbContext db)
         {
             InsomniaAnalysisData result = new InsomniaAnalysisData();
             var answerTemplates = db.Set<SurveysAnswerTemplate>();
@@ -310,7 +411,8 @@ namespace CnMedicineServer.Bll
                             result.Gender = answer.Guts;
                             break;
                         case "年龄":
-                            result.Age = decimal.Parse(answer.Guts);
+                            if (decimal.TryParse(answer.Guts, out decimal age))
+                                result.Age = age;
                             break;
                         default:
                             break;
@@ -332,7 +434,7 @@ namespace CnMedicineServer.Bll
                 var invalid = propIns.FirstOrDefault(c => c.Item1 == "无效");
                 if (null != invalid && invalid.Item2 != 0)   //若存在无效条目
                 {
-                    result.Invalids11.Add(conv11);
+                    result.Invalid11s.Add(conv11);
                 }
             }
             return result;

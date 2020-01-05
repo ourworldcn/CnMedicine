@@ -15,6 +15,7 @@ namespace CnMedicineServer
         {
             // Web API 配置和服务
             // 将 Web API 配置为仅使用不记名令牌身份验证。
+            config.EnableCors();
             config.SuppressDefaultHostAuthentication();
             config.Filters.Add(new HostAuthenticationFilter(OAuthDefaults.AuthenticationType));
 
@@ -26,7 +27,7 @@ namespace CnMedicineServer
                 routeTemplate: "api/{controller}/{id}",
                 defaults: new { id = RouteParameter.Optional }
             );
-
+            //config.Formatters.XmlFormatter.GetPerRequestFormatterInstance()
         }
 
 

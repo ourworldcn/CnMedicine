@@ -7,6 +7,7 @@ using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -112,13 +113,52 @@ namespace OW.Data.Entity
                 var tmp = new T();
                 foreach (var item in mapping)
                 {
-                    var val = Convert.ChangeType(row[item.Index], item.pi.PropertyType);
+                    var val = ConvertEx(row[item.Index], item.pi.PropertyType);
                     item.pi.SetValue(tmp, val);
                 }
                 result.Add(tmp);
             }
             return result;
         }
+
+        private object ConvertEx(object obj, Type type)
+        {
+            object result = null;
+            switch (Type.GetTypeCode(type))
+            {
+                case TypeCode.Empty:
+                    break;
+                case TypeCode.Object:
+                    var mi = type.GetMethod("Parse", BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy, null, new Type[] { typeof(string) }, null);
+                    if (null != mi)
+                        result = mi.Invoke(null, new object[] { obj });
+                    break;
+                case TypeCode.DBNull:
+                    break;
+                case TypeCode.Boolean:
+                case TypeCode.Char:
+                case TypeCode.SByte:
+                case TypeCode.Byte:
+                case TypeCode.Int16:
+                case TypeCode.UInt16:
+                case TypeCode.Int32:
+                case TypeCode.UInt32:
+                case TypeCode.Int64:
+                case TypeCode.UInt64:
+                case TypeCode.Single:
+                case TypeCode.Double:
+                case TypeCode.Decimal:
+                case TypeCode.DateTime:
+                case TypeCode.String:
+                    result = Convert.ChangeType(obj, type);
+                    break;
+                default:
+                    break;
+            }
+            return result;
+        }
+
+
 
         #region IDisposable Support
         private bool disposedValue = false; // 要检测冗余调用
@@ -166,6 +206,8 @@ namespace OW.Data.Entity
 
         public static List<Tuple<string, decimal>> GetTuples(string guts)
         {
+            if (string.IsNullOrWhiteSpace(guts))
+                return new List<Tuple<string, decimal>>();
             List<Tuple<string, decimal>> result = new List<Tuple<string, decimal>>();
             var matches = Regex.Matches(guts, KvPatternString);
 

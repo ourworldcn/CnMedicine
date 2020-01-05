@@ -474,7 +474,7 @@ namespace CnMedicineServer.Models
 
         public override string ToString()
         {
-            return $"编号 = { MatchString} ,药物 = { CnDrugString} ";
+            return $"编号 = {MatchString} ,药物 = { CnDrugString} ";
         }
 
         /// <summary>

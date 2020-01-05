@@ -112,7 +112,7 @@ namespace CnMedicineServer.Controllers
         /// <param name="queryable"></param>
         /// <param name="model"></param>
         /// <returns>200成功，此时返回分页数据。</returns>
-        protected virtual OkNegotiatedContentResult<PagingResult<T>> HyPaging<T>(IQueryable<T> queryable, PagingControlBaseViewModel model)
+        protected virtual OkNegotiatedContentResult<PagingResult<T>> Paging<T>(IQueryable<T> queryable, PagingControlBaseViewModel model)
         {
             var result = new PagingResult<T>() { UserState = model.UserState, };
             try
@@ -122,7 +122,7 @@ namespace CnMedicineServer.Controllers
             }
             catch (Exception )
             {
-                //return InternalServerError(err);
+               // return InternalServerError(err);
             }
             return Ok(result);
         }

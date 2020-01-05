@@ -63,7 +63,7 @@ namespace OW.Data.Entity
         /// 该问卷内所有问题的导航属性。
         /// </summary>
         [DataMember]
-        public virtual List<SurveysQuestionTemplate> QuestionTemplates { get; set; }
+        public virtual List<SurveysQuestionTemplate> Questions { get; set; }
 
         public object Clone()
         {
@@ -75,11 +75,16 @@ namespace OW.Data.Entity
                 Id = obj.Id,
                 Name = obj.Name,
                 ShortName = obj.ShortName,
-                QuestionTemplates = obj.QuestionTemplates.Select(c =>
+                Questions = obj.Questions.Select(c =>
                   {
                       return (SurveysQuestionTemplate)c.Clone();
                   }).ToList(),
             };
+        }
+
+        public override string ToString()
+        {
+            return $"Name={Name}";
         }
 
         /// <summary>
@@ -96,6 +101,24 @@ namespace OW.Data.Entity
     public class SurveysQuestionTemplate : ThingEntityBase, ICloneable
     {
         /// <summary>
+        /// 构造函数。
+        /// </summary>
+        public SurveysQuestionTemplate()
+        {
+
+        }
+
+        /// <summary>
+        /// 返回表示当前对象的字符串。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return $"Name = {Name},QuestionTitle = {QuestionTitle}";
+        }
+
+
+        /// <summary>
         /// 所属调查问卷的Id。
         /// </summary>
         [DataMember]
@@ -111,7 +134,7 @@ namespace OW.Data.Entity
         /// 答案项。仅对选择题有效。
         /// </summary>
         [DataMember]
-        public virtual List<SurveysAnswerTemplate> AnswerTemplates { get; set; }
+        public virtual List<SurveysAnswerTemplate> Answers { get; set; }
 
         /// <summary>
         /// 对问题的说明。
@@ -147,7 +170,7 @@ namespace OW.Data.Entity
                 Id = obj.Id,
                 Name = obj.Name,
                 ShortName = obj.ShortName,
-                AnswerTemplates = obj.AnswerTemplates.Select(c => (SurveysAnswerTemplate)c.Clone()).ToList(),
+                Answers = obj.Answers.Select(c => (SurveysAnswerTemplate)c.Clone()).ToList(),
                 Kind = obj.Kind,
                 OrderNum = obj.OrderNum,
                 QuestionTitle = obj.QuestionTitle,
@@ -163,6 +186,23 @@ namespace OW.Data.Entity
     [DataContract]
     public class SurveysAnswerTemplate : ThingEntityBase, ICloneable
     {
+        /// <summary>
+        /// 构造函数。
+        /// </summary>
+        public SurveysAnswerTemplate()
+        {
+
+        }
+
+        /// <summary>
+        /// 返回表示当前对象的字符串。
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return $"Name = {Name} ,AnswerTitle = {AnswerTitle}";
+        }
+
         /// <summary>
         /// 所属问题的Id。
         /// </summary>

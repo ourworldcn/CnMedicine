@@ -8,13 +8,18 @@ using System.Data.Entity.Migrations;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Cors;
 using System.Web.Http.Description;
 
 namespace CnMedicineServer.Controllers
 {
+
     /// <summary>
     /// 专病功能控制器。
     /// </summary>
@@ -22,6 +27,27 @@ namespace CnMedicineServer.Controllers
     [EnableCors("*", "*", "*")/*crossDomain: true,*/]
     public class SpecialCasesInsomniaController : OwApiControllerBase
     {
+        const string _SaveConclusionPath = "/web/interface/questionnaire/save";
+
+        static Lazy<HttpClient> _LazyHttpClient = new Lazy<HttpClient>(() =>
+        {
+            var result = new HttpClient();
+            result.BaseAddress = new Uri("http://39.104.89.104:8086");
+            result.DefaultRequestHeaders.Accept.Clear();
+            result.DefaultRequestHeaders.Accept.Add(
+                new MediaTypeWithQualityHeaderValue("application/json"));
+            return result;
+        }, true);
+
+        /// <summary>
+        /// 获取方位其它WebApi的对象。
+        /// </summary>
+        /// <returns></returns>
+        public static HttpClient GetHttpClient()
+        {
+            return _LazyHttpClient.Value;
+        }
+
         /// <summary>
         /// 获取所有专病的列表。
         /// </summary>
@@ -32,11 +58,11 @@ namespace CnMedicineServer.Controllers
         [HttpGet]
         public IHttpActionResult GetList([FromUri]PagingControlBaseViewModel model)
         {
-            var coll = DbContext.SurveysTemplates.OrderBy(c => c.Name);
+            var coll = DbContext.SurveysTemplates.AsNoTracking().OrderBy(c => c.Name);
             var result = Paging(coll, model);
             foreach (var item in result.Content.Datas)
             {
-                item.Questions = null;
+                item.LoadThingPropertyItemsAsync(DbContext).Wait();
             }
 
             return result;
@@ -56,6 +82,7 @@ namespace CnMedicineServer.Controllers
                 if (flag > 0)
                     result = null;
             }
+            result?.LoadThingPropertyItemsAsync(DbContext).Wait();
             return result;
         }
 
@@ -137,6 +164,7 @@ namespace CnMedicineServer.Controllers
                 SurveysTemplate queryResult = query.Where(c => c.Id == id.Value).FirstOrDefault();
                 if (null == queryResult)
                     queryResult = query.Where(c => c.Name == "失眠").FirstOrDefault();
+                queryResult?.LoadThingPropertyItemsAsync(db).Wait();
                 return Ok(queryResult);
             }
             finally
@@ -185,7 +213,7 @@ namespace CnMedicineServer.Controllers
                     model.UserState = "复诊1";
                 else
                     model.UserState = "复诊0";
-                model= DbContext.Set<Surveys>().Add(model);
+                model = DbContext.Set<Surveys>().Add(model);
                 DbContext.SaveChanges();
                 var strName = DbContext.SurveysTemplates.Find(model.TemplateId)?.Name;
                 CnMedicineAlgorithm algs;
@@ -204,7 +232,19 @@ namespace CnMedicineServer.Controllers
                         break;
                 }
                 DbContext.SurveysConclusions.Add(result);
+                result.SaveThingPropertyItemsAsync(DbContext).Wait();
                 DbContext.SaveChanges();
+                try
+                {
+                    var client = GetHttpClient();
+                    var guts= new SaveConclusioModel(model, result, DbContext);
+                     var response = client.PostAsJsonAsync(_SaveConclusionPath, guts).Result;
+                    response.EnsureSuccessStatusCode();
+                }
+                catch (Exception err)
+                {
+                    //TO DO
+                }
                 return Ok(result);
             }
             catch (Exception err)
@@ -214,7 +254,7 @@ namespace CnMedicineServer.Controllers
         }
 
         /// <summary>
-        /// 获取指定Id的诊断结论。
+        /// 获取指定Id的诊断结论。Description是诊断信息。Conclusion是处方，
         /// </summary>
         /// <param name="id">结论的Id。一般来源于 SetSurveys 的结果。</param>
         /// <returns>诊断结论。</returns>
@@ -228,7 +268,15 @@ namespace CnMedicineServer.Controllers
                 return BadRequest(ModelState);
             }
             var result = DbContext.SurveysConclusions.Find(id);
+            result?.LoadThingPropertyItemsAsync(DbContext).Wait();
             return Ok(result);
+        }
+
+        [Route("TestSaveConclusio")]
+        [ResponseType(typeof(SaveConclusioModel))]
+        public IHttpActionResult TestSaveConclusio()
+        {
+            return Ok();
         }
     }
 

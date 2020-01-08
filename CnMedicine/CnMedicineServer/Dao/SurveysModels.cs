@@ -8,6 +8,22 @@ using System.Runtime.Serialization;
 
 namespace OW.Data.Entity
 {
+    public class MyValidation : ValidationAttribute
+    {
+        public MyValidation()
+        {
+        }
+
+        public override bool RequiresValidationContext { get; } = true;
+
+        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        {
+            //var result = base.IsValid(value, validationContext);
+
+            return ValidationResult.Success;
+        }
+    }
+
     /// <summary>
     /// 每个问题的类型。
     /// </summary>
@@ -360,6 +376,7 @@ namespace OW.Data.Entity
 
     /// <summary>
     /// 调查的结论。
+    /// Description用于记录简单结论。
     /// </summary>
     [DataContract]
     public class SurveysConclusion : ThingEntityBase
@@ -382,7 +399,7 @@ namespace OW.Data.Entity
         public Guid SurveysId { get; set; }
 
         /// <summary>
-        /// 结论字符串。
+        /// 主要诊疗结果。目前是处方数据。
         /// </summary>
         [DataMember]
         public string Conclusion { get; set; }

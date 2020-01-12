@@ -108,6 +108,7 @@ namespace OW.Data.Entity
         /// 有延迟加载机制，不访问就不会有开销。
         /// </summary>
         // public virtual List<Surveys> Surveys { get; set; }
+
     }
 
     /// <summary>
@@ -322,6 +323,12 @@ namespace OW.Data.Entity
         [Index]
         [Required]
         public string UserId { get; set; }
+
+        /// <summary>
+        /// 结论Id。
+        /// </summary>
+        [DataMember]
+        public Guid? ConclusionId { get; set; }
     }
 
     /// <summary>

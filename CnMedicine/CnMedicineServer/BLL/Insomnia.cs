@@ -359,7 +359,7 @@ namespace CnMedicineServer.Bll
     /// <summary>
     /// 封装失眠的算法。
     /// </summary>
-    public class InsomniaAlgorithm: CnMedicineAlgorithm
+    public class InsomniaAlgorithm : CnMedicineAlgorithm
     {
 
         /// <summary>
@@ -370,13 +370,15 @@ namespace CnMedicineServer.Bll
         /// <returns></returns>
         protected override SurveysConclusion GetResultCore(Surveys surveys, ApplicationDbContext db)
         {
-            SurveysConclusion result = new SurveysConclusion() { SurveysId = surveys.Id };
+            SurveysConclusion result = new SurveysConclusion() { SurveysId = surveys.Id, };
             db.Set<SurveysAnswerTemplate>().Load();
             var answerTemplates = db.Set<SurveysAnswerTemplate>();
             var coll = GetFirstCore(surveys, db);
             result.Conclusion = string.Join(",", coll.CnDrugResult.Select(c => $"{c.Item1}{c.Item2}"));
             result.ExtendedInfomation = coll.GetDescription();
             result.Description = $"{string.Join(",", coll.InsomniaCnDrugConversions.Select(c => c.CnMedicineConclusions).Distinct())}";
+            if (string.IsNullOrWhiteSpace(result.Description))
+                result.Description = "(无有效病症输入)";
             return result;
         }
 

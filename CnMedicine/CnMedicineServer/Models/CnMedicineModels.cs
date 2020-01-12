@@ -36,6 +36,7 @@ namespace CnMedicineServer.Models
             Conclusion = conclusion;
             var template = db.Set<SurveysTemplate>().Find(surveys.TemplateId);
             UserId = surveys.UserId;
+            SurveysTemplateId = surveys.TemplateId;
             var question = template.Questions.FirstOrDefault(c => c.QuestionTitle == "姓名");
             if (null != question)
             {
@@ -73,5 +74,17 @@ namespace CnMedicineServer.Models
 
         [DataMember(IsRequired = true, Name = "userId")]
         public string UserId { get; set; }
+
+        /// <summary>
+        /// 调查问卷的模板Id。
+        /// </summary>
+        [DataMember(IsRequired = true)]
+        public Guid SurveysTemplateId { get; set; }
+    }
+
+    [DataContract]
+    public class ListSummaryItemViewModel
+    {
+
     }
 }

@@ -233,12 +233,13 @@ namespace CnMedicineServer.Controllers
                 }
                 DbContext.SurveysConclusions.Add(result);
                 result.SaveThingPropertyItemsAsync(DbContext).Wait();
+                model.ConclusionId = result.Id;
                 DbContext.SaveChanges();
                 try
                 {
                     var client = GetHttpClient();
-                    var guts= new SaveConclusioModel(model, result, DbContext);
-                     var response = client.PostAsJsonAsync(_SaveConclusionPath, guts).Result;
+                    var guts = new SaveConclusioModel(model, result, DbContext);
+                    var response = client.PostAsJsonAsync(_SaveConclusionPath, guts).Result;
                     response.EnsureSuccessStatusCode();
                 }
                 catch (Exception err)
@@ -272,11 +273,31 @@ namespace CnMedicineServer.Controllers
             return Ok(result);
         }
 
-        [Route("TestSaveConclusio")]
+        /// <summary>
+        /// 示例测试。
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        [Route("TestDemo")]
         [ResponseType(typeof(SaveConclusioModel))]
-        public IHttpActionResult TestSaveConclusio()
+        public IHttpActionResult ListFromUserId(string userId)
         {
             return Ok();
+        }
+
+        /// <summary>
+        /// 按指定Id获取调查信息。
+        /// </summary>
+        /// <param name="surveysId">调查问卷的Id。</param>
+        /// <returns>返回调查数据，如果找到指定Id的调查数据则返回null。</returns>
+        [ResponseType(typeof(Surveys))]
+        [Route("Surveys")]
+        [HttpGet]
+        public IHttpActionResult GetSurveysById([FromUri]Guid surveysId)
+        {
+            var result = DbContext.Set<Surveys>().Find(surveysId);
+            result?.LoadThingPropertyItemsAsync(DbContext).Wait();
+            return Ok(result);
         }
     }
 

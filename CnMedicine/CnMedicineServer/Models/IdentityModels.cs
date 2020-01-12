@@ -97,5 +97,7 @@ namespace CnMedicineServer.Models
         public DbSet<SurveysTemplate> SurveysTemplates { get; set; }
 
         public DbSet<SurveysConclusion> SurveysConclusions { get; set; }
+
+        public DbSet<Surveys> Surveys { get; set; }
     }
 }

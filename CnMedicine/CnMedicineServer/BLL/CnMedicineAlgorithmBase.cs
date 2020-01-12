@@ -9,6 +9,8 @@ namespace CnMedicineServer.Bll
 
         public SurveysConclusion GetResult(Surveys surveys, ApplicationDbContext db)
         {
+            if(null== surveys.Template)
+                surveys.Template =db.SurveysTemplates.Find(surveys.TemplateId);
             return GetResultCore(surveys, db);
         }
     }

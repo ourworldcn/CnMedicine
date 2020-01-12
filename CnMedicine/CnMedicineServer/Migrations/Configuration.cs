@@ -76,6 +76,13 @@ namespace CnMedicineServer.Migrations
 
         private void Init(ApplicationDbContext context)
         {
+            var ary = context.SurveysTemplates.ToArray();
+            if (!ary.Any(c => c.Name == "±ÇÑ×"))
+                context.SurveysTemplates.Add(new SurveysTemplate()
+                {
+                    Id = Guid.Parse("a7458e0d-2bb9-4f99-9913-0b978f6e0cd2"),
+                    Name = "±ÇÑ×",
+                });
             Init1Async(context);
         }
 

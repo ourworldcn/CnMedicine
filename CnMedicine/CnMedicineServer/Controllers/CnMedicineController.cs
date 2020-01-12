@@ -213,8 +213,9 @@ namespace CnMedicineServer.Controllers
                     model.UserState = "复诊1";
                 else
                     model.UserState = "复诊0";
-                model = DbContext.Set<Surveys>().Add(model);
-                DbContext.SaveChanges();
+                model = DbContext.Surveys.Add(model);
+                
+                //DbContext.SaveChanges();
                 var strName = DbContext.SurveysTemplates.Find(model.TemplateId)?.Name;
                 CnMedicineAlgorithm algs;
                 SurveysConclusion result = null;
@@ -286,7 +287,7 @@ namespace CnMedicineServer.Controllers
         }
 
         /// <summary>
-        /// 按指定Id获取调查信息。
+        /// 按指定Id获取调查信息。参数是调查问卷的Id。
         /// </summary>
         /// <param name="surveysId">调查问卷的Id。</param>
         /// <returns>返回调查数据，如果找到指定Id的调查数据则返回null。</returns>

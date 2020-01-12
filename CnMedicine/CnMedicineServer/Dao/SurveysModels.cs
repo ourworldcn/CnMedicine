@@ -8,6 +8,27 @@ using System.Runtime.Serialization;
 
 namespace OW.Data.Entity
 {
+
+    public static class OwDbContextExtensions
+    {
+        public static void AddRange<T>(this ICollection<T> collection, IEnumerable<T> values)
+        {
+            List<T> lst = collection as List<T>;
+            if (null != lst)
+                lst.AddRange(values);
+            else
+                foreach (var item in values)
+                {
+                    collection.Add(item);
+                }
+        }
+
+        public static void Load<T>(this DbContext context, ICollection<T> collection)
+        {
+        }
+
+    }
+
     public class MyValidation : ValidationAttribute
     {
         public MyValidation()
@@ -23,6 +44,7 @@ namespace OW.Data.Entity
             return ValidationResult.Success;
         }
     }
+
 
     /// <summary>
     /// 每个问题的类型。
@@ -300,6 +322,9 @@ namespace OW.Data.Entity
         [Required]
         public Guid TemplateId { get; set; }
 
+        /// <summary>
+        /// 模板类的导航属性。
+        /// </summary>
         public virtual SurveysTemplate Template { get; set; }
 
         /// <summary>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -24,9 +25,9 @@ namespace HelpTest
 
         private void button1_Click(object sender, EventArgs e)
         {
-            string pattern = @"[\p{P}\s]*(?<name>[^\p{P}\s]*)[\s]*";
-            var matches = Regex.Matches(textBox1.Text, pattern);
-            var coll = InsomniaMethod.GetTuples(textBox1.Text);
+            string pattern = @"[\p{Po}\s]*(?<name>[^\p{Po}\s]*)[\s]*";
+            //var matches = Regex.Matches(textBox1.Text, pattern);
+            var coll = EntityUtil.GetTuples(textBox1.Text);
             SuspendLayout();
             try
             {
@@ -44,6 +45,9 @@ namespace HelpTest
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            var cat1 = char.GetUnicodeCategory('—');
+            var cat2 = char.GetUnicodeCategory('.');
+            var cat3 = char.GetUnicodeCategory('＄');
             var str = "2";
             var i = Convert.ChangeType(str, typeof(int));
             //var mi = typeof(Guid).GetMethod("Parse", BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy, null, new Type[] { typeof(string) }, null);
@@ -60,15 +64,22 @@ namespace HelpTest
         }
     }
 
-    public class InsomniaMethod
+    public class EntityUtil
     {
-        public const string KvPatternString = @"[\p{P}\s]*(?<name>.*?)[\s]*(?<value>[\+\-]?\d+)";
+        public const string KvPatternString = @"[\p{Po}\s]*(?<name>.*?)[\s]*(?<value>[\+\-]?\d+)";
 
         public const string ListPatternString = @"[\p{P}\s]*(?<name>[^\p{P}\s]*)[\s]*";
 
-        public static List<Tuple<string, float>> GetTuples(string guts)
+        /// <summary>
+        /// 将字符串拆分为二元组。
+        /// </summary>
+        /// <param name="guts">如：xxx-1,sss+1。第三1。</param>
+        /// <returns></returns>
+        public static List<Tuple<string, decimal>> GetTuples(string guts)
         {
-            List<Tuple<string, float>> result = new List<Tuple<string, float>>();
+            if (string.IsNullOrWhiteSpace(guts))
+                return new List<Tuple<string, decimal>>();
+            List<Tuple<string, decimal>> result = new List<Tuple<string, decimal>>();
             var matches = Regex.Matches(guts, KvPatternString);
 
             foreach (Match match in matches)
@@ -78,13 +89,18 @@ namespace HelpTest
                     continue;
                 string name = group.Value;
                 group = match.Groups["value"];
-                if (!group.Success || !float.TryParse(group.Value, out float tmp))
+                if (!group.Success || !decimal.TryParse(group.Value, out decimal tmp))
                     continue;
                 result.Add(Tuple.Create(name, tmp));
             }
             return result;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="guts"></param>
+        /// <returns></returns>
         public static List<string> GetArray(string guts)
         {
             List<string> result = new List<string>();
@@ -100,6 +116,35 @@ namespace HelpTest
             }
             return result;
         }
-    }
 
+        static ConcurrentDictionary<ValueTuple<Type, Type>, List<ValueTuple<PropertyDescriptor, PropertyDescriptor>>> CopyToDic = new ConcurrentDictionary<(Type, Type), List<(PropertyDescriptor, PropertyDescriptor)>>();
+
+        /// <summary>
+        /// 将源对象所有与目标对象同名的属性复制到目标对象。
+        /// </summary>
+        /// <param name="source">源对象。</param>
+        /// <param name="dest">目标对象。</param>
+        /// <param name="excludes">排除的属性。多个属性名用逗号分开。</param>
+        public static void CopyTo(object source, object dest, string excludes = null)
+        {
+            var key = ValueTuple.Create(source.GetType(), dest.GetType());
+            var list = CopyToDic.GetOrAdd(key, c =>
+            {
+                var l = TypeDescriptor.GetProperties(c.Item1).OfType<PropertyDescriptor>();
+                var r = TypeDescriptor.GetProperties(c.Item2).OfType<PropertyDescriptor>().Where(subc => !subc.IsReadOnly);
+                var result = l.Join(r, c1 => c1.Name, c1 => c1.Name, (c1, c2) => ValueTuple.Create(c1, c2));
+                return result.ToList();
+            });
+            HashSet<string> hs = null;
+            if (!string.IsNullOrWhiteSpace(excludes))
+                hs = new HashSet<string>(excludes.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries));
+            foreach (var item in list)
+            {
+                if (hs?.Contains(item.Item1.Name) ?? false)
+                    continue;
+                item.Item2.SetValue(dest, item.Item1.GetValue(source));
+            }
+        }
+
+    }
 }

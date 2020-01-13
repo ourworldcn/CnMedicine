@@ -214,23 +214,30 @@ namespace CnMedicineServer.Controllers
                 else
                     model.UserState = "复诊0";
                 model = DbContext.Surveys.Add(model);
-                
+
                 //DbContext.SaveChanges();
                 var strName = DbContext.SurveysTemplates.Find(model.TemplateId)?.Name;
                 CnMedicineAlgorithm algs;
                 SurveysConclusion result = null;
-                switch (strName)
+                try
                 {
-                    case "失眠":
-                        algs = new InsomniaAlgorithm();
-                        result = algs.GetResult(model, DbContext);
-                        break;
-                    case "鼻炎":
-                        algs = new RhinitisMethods();
-                        result = algs.GetResult(model, DbContext);
-                        break;
-                    default:
-                        break;
+                    switch (strName)
+                    {
+                        case "失眠":
+                            algs = new InsomniaAlgorithm();
+                            result = algs.GetResult(model, DbContext);
+                            break;
+                        case "鼻炎":
+                            algs = new RhinitisMethods();
+                            result = algs.GetResult(model, DbContext);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                catch (Exception err)
+                {
+                    return InternalServerError(err);
                 }
                 DbContext.SurveysConclusions.Add(result);
                 result.SaveThingPropertyItemsAsync(DbContext).Wait();

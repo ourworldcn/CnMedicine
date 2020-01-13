@@ -207,9 +207,12 @@ namespace OW.Data.Entity
 
     public class EntityUtil
     {
-        public const string KvPatternString = @"[\p{P}\s]*(?<name>.*?)[\s]*(?<value>[\+\-]?\d+)";
+        /// <summary>
+        /// 捕获模式字符串。如：:生地黄-9,玄参9，天冬15;麦冬(醋熏）15;丹参（后下）9。当归9、党参9茯神15炒酸枣仁15远志6五味子6龙骨（醅)-30
+        /// </summary>
+        public const string KvPatternString = @"[\p{Po}\s]*(?<name>.*?)[\s]*(?<value>[\+\-]?\d+)";
 
-        public const string ListPatternString = @"[\p{P}\s]*(?<name>[^\p{P}\s]*)[\s]*";
+        public const string ListPatternString = @"[\p{Po}\s]*(?<name>[^\p{Po}\s]*)[\s]*";
 
         /// <summary>
         /// 将字符串拆分为二元组。

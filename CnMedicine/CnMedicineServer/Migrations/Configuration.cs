@@ -80,7 +80,7 @@ namespace CnMedicineServer.Migrations
             if (!ary.Any(c => c.Name == "±ÇÑ×"))
                 context.SurveysTemplates.Add(new SurveysTemplate()
                 {
-                    Id = Guid.Parse("a7458e0d-2bb9-4f99-9913-0b978f6e0cd2"),
+                    Id = Guid.Parse("A7458E0D-2BB9-4F99-9913-0B978F6E0CD2"),    //A7458E0D-2BB9-4F99-9913-0B978F6E0CD2
                     Name = "±ÇÑ×",
                 });
             Init1Async(context);

@@ -17,6 +17,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "资料", "资料", "{8EA244
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelpTest", "HelpTest\HelpTest.csproj", "{8095336B-2F49-45C6-AE4F-E1F314DBFBD1}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "鼻炎资料", "鼻炎资料", "{98C4C208-15E6-4C61-9FF6-90CFD78E1A17}"
+	ProjectSection(SolutionItems) = preProject
+		鼻炎资料\规范数据表鼻炎.xlsx = 鼻炎资料\规范数据表鼻炎.xlsx
+		鼻炎方案.docx = 鼻炎方案.docx
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,6 +40,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{98C4C208-15E6-4C61-9FF6-90CFD78E1A17} = {8EA24471-ACCE-46C4-B774-65E7A6F16DBE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {571C9B82-E8CE-499F-BC43-15282B11A499}

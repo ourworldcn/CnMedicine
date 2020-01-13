@@ -200,12 +200,12 @@ namespace CnMedicineServer.Bll
             HashSet<string> hsPhenomenons = new HashSet<string>(RhinitisConversions.SelectMany(c => c.CnPhenomenonProperties).Select(c => c.Item1));
             HashSet<string> hsPathogens = new HashSet<string>(RhinitisConversion.DefaultCollection.SelectMany(c => c.CnPathogenProperties).Select(c => c.Item1));
 
-            ///脏腑评分
+            //脏腑评分
             var VisceralScroes = RhinitisConversions.SelectMany(c => c.CnVisceralProperties);
             var visceralAry = VisceralScroes.GroupBy(c => c.Item1).Select(c => Tuple.Create(c.Key, c.Sum(c1 => c1.Item2))).OrderByDescending(c => c.Item2).ToArray();
             var maxVisceral = visceralAry.FirstOrDefault()?.Item2 ?? 0;
 
-            ///一定要和第二分值比较，鼻炎取前两分值，并列第一时，取并列第一值，不再取第二值
+            //一定要和第二分值比较，鼻炎取前两分值，并列第一时，取并列第一值，不再取第二值
             decimal sendVisceral = 0;
             if (visceralAry.Length > 1)
             { 
@@ -432,12 +432,12 @@ namespace CnMedicineServer.Bll
                                 break;
                         }
                     }
-
-                    ///此处开始输出所有的病机药物的，
-                    ///按照病机评分项做一个循环，然后对照每个项目满足时RhinitisCnDrugConversion2s的数据
-                    ///按照编号做唯一检索输出
-                    /// 编号此处编号为内部定义，不和症候做任何关联。例如:编号为"3"代表通窍》=6的输出。
-                    /// 例如调用时判断基础输出中有脏腑心的输出，并且安神>0，即可输出编号为15的药物
+                    /* 此处开始输出所有的病机药物的，
+                    按照病机评分项做一个循环，然后对照每个项目满足时RhinitisCnDrugConversion2s的数据
+                   按照编号做唯一检索输出
+                     编号此处编号为内部定义，不和症候做任何关联。例如:编号为"3"代表通窍》=6的输出。
+                     例如调用时判断基础输出中有脏腑心的输出，并且安神>0，即可输出编号为15的药物
+                     */
                 }
                 return _RhinitisCnDrugPathogens;
             }

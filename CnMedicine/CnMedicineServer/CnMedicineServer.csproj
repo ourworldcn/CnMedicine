@@ -224,6 +224,7 @@
     <Compile Include="Controllers\ValuesController.cs" />
     <Compile Include="Dao\BaseModels.cs" />
     <Compile Include="Dao\InsomniaModels.cs" />
+    <Compile Include="Dao\RhinitisModels.cs" />
     <Compile Include="Dao\SpecialCasesModels.cs" />
     <Compile Include="Dao\SurveysModels.cs" />
     <Compile Include="Global.asax.cs">
@@ -257,6 +258,10 @@
     <Content Include="Content\评分表1-失眠.txt" />
     <Content Include="Content\评分表2-失眠.txt" />
     <Content Include="Content\问题定义-失眠.txt" />
+    <Content Include="Content\鼻炎\病机药物输出-鼻炎.txt" />
+    <Content Include="Content\鼻炎\药物输出-鼻炎.txt" />
+    <Content Include="Content\鼻炎\评分表-鼻炎.txt" />
+    <Content Include="Content\鼻炎\问题定义-鼻炎.txt" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />

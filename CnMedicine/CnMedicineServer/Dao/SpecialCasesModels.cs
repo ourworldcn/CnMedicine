@@ -61,4 +61,29 @@ namespace CnMedicineServer.Models
         public virtual List<Surveys> Surveys { get; set; }
     }
 
+
+    /// <summary>
+    /// 专病鼻炎的诊断模型。
+    /// </summary>
+    [DataContract]
+    public class RhinitisCasesItem : SpecialCasesItem
+    {
+        /// <summary>
+        /// 评分表导航属性。
+        /// </summary>
+        public virtual List<RhinitisConversion> Conversions { get; set; }
+
+        /// <summary>
+        /// 药物输出导航属性。
+        /// </summary>
+        public virtual List<RhinitisCnDrugConversion> CnDrugCorrections { get; set; }
+
+        /// <summary>
+        /// 病机药物输出导航属性。
+        /// </summary>
+        public virtual List<RhinitisCnDrugPathogen> CnDrugConversion2s { get; set; }
+
+        public virtual List<Surveys> Surveys { get; set; }
+    }
+
 }

@@ -103,6 +103,12 @@ namespace OW.Data.Entity
         [DataMember]
         public virtual List<SurveysQuestionTemplate> Questions { get; set; }
 
+        /// <summary>
+        /// 扩展属性的字符串。如:支持复诊1。表示是需要调用上次的复诊记录比对。
+        /// </summary>
+        [DataMember]
+        public string  UserState { get; set; }
+
         public object Clone()
         {
             var obj = this;

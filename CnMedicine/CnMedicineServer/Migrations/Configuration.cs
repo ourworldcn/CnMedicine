@@ -76,15 +76,50 @@ namespace CnMedicineServer.Migrations
 
         private void Init(ApplicationDbContext context)
         {
-            var ary = context.SurveysTemplates.ToArray();
-            if (!ary.Any(c => c.Name == "鼻炎"))
-                context.SurveysTemplates.Add(new SurveysTemplate()
-                {
-                    Id = Guid.Parse("A7458E0D-2BB9-4F99-9913-0B978F6E0CD2"),    //A7458E0D-2BB9-4F99-9913-0B978F6E0CD2
-                    Name = "鼻炎",
-                });
+            InitSurveysTemplates(context);
             Init1Async(context);
             InitRhinitisAsync(context);
+        }
+
+        private void InitSurveysTemplates(ApplicationDbContext context)
+        {
+            Dictionary<string, SurveysTemplate> oldValues;
+            try
+            {
+                oldValues = context.SurveysTemplates.ToDictionary(c => c.Name);
+            }
+            catch (ArgumentException err)   // keySelector 为两个元素产生了重复键。
+            {
+                oldValues = new Dictionary<string, SurveysTemplate>();
+            }
+            Dictionary<string, SurveysTemplate> dic = new Dictionary<string, SurveysTemplate>()
+            {
+                {
+                    "鼻炎",
+                    new  SurveysTemplate()
+                    {
+                        Id = Guid.Parse("A7458E0D-2BB9-4F99-9913-0B978F6E0CD2"),
+                        Name = "鼻炎",
+
+                    }
+                },
+                {
+                    "失眠",
+                    new  SurveysTemplate()
+                    {
+                        Id = Guid.Parse("6987331B-CB93-4ABA-9B18-E777FBCA2B15"),
+                        Name = "失眠",
+                       UserState= "支持复诊1",
+                    }
+                }
+            };
+            //foreach (var key in dic.Keys)
+            //{
+            //    if (oldValues.TryGetValue(key, out SurveysTemplate template))
+            //        EntityUtil.CopyTo(template, dic[key], $"{nameof(SurveysTemplate.Questions)}");
+            //}
+            context.SurveysTemplates.AddOrUpdate(dic.Values.ToArray());
+            context.SaveChanges();
         }
 
         /// <summary>
@@ -116,7 +151,7 @@ namespace CnMedicineServer.Migrations
             }
             //添加调查问卷项
             task?.Wait();
-            var st = context.Set<SurveysTemplate>().Where(c => c.Name == "失眠").FirstOrDefault();
+            var st = context.Set<SurveysTemplate>().Include(c=>c.Questions).Where(c => c.Name == "失眠").FirstOrDefault();
             if (null == st)
             {
                 st = context.Set<SurveysTemplate>().Create();
@@ -127,7 +162,7 @@ namespace CnMedicineServer.Migrations
             }
             //生成调查问卷数据。
             task?.Wait();
-            var questionTemplates = st.Questions;
+            var questionTemplates = st.Questions ?? new List<SurveysQuestionTemplate>();
             var rows = dt.Rows.OfType<DataRow>().Where(c => !c.HasErrors);
             //编号,问题,症候,类型,脏腑评分,证型评分,UserState
             var items = rows.Select(c => new { 编号 = Convert.ToString(c["编号"]), 问题 = c["问题"].ToString(), 症候 = c["症候"].ToString(), 类型 = (QuestionsKind)Convert.ToInt32(c["类型"]), 脏腑评分 = c["脏腑评分"].ToString(), 证型评分 = c["证型评分"].ToString() });
@@ -155,7 +190,7 @@ namespace CnMedicineServer.Migrations
                         };
                     }));
                 return result;
-            });
+            }).ToList();
             questionTemplates.AddRange(addQuestions);
 
             context.SaveChanges();

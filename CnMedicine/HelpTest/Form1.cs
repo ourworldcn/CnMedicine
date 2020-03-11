@@ -43,8 +43,18 @@ namespace HelpTest
             }
         }
 
+        [Flags, Serializable]
+        enum MyEnum
+        {
+            多重 = 1,
+            选择 = 512,
+        }
         private void Form1_Load(object sender, EventArgs e)
         {
+            //var xx = (MyEnum)Convert.ChangeType("选择 , 多重", typeof(MyEnum));
+            var td = TypeDescriptor.GetConverter(typeof(MyEnum));
+            var xx = (MyEnum)td.ConvertFrom("选择 , 多重");
+            var en = (MyEnum)Enum.Parse(typeof(MyEnum), "选择 , 多重", true);
             var cat1 = char.GetUnicodeCategory('—');
             var cat2 = char.GetUnicodeCategory('.');
             var cat3 = char.GetUnicodeCategory('＄');

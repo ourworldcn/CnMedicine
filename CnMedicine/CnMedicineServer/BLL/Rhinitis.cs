@@ -502,7 +502,7 @@ namespace CnMedicineServer.Bll
     /// <summary>
     /// 封装鼻炎的算法。
     /// </summary>
-    public class RhinitisMethods : CnMedicineAlgorithm
+    public class RhinitisAlgorithm : CnMedicineAlgorithmBase
     {
 
         /// <summary>

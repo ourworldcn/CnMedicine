@@ -359,7 +359,7 @@ namespace CnMedicineServer.Bll
     /// <summary>
     /// 封装失眠的算法。
     /// </summary>
-    public class InsomniaAlgorithm : CnMedicineAlgorithm
+    public class InsomniaAlgorithm : CnMedicineAlgorithmBase
     {
 
         /// <summary>

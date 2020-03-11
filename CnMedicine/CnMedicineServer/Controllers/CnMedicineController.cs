@@ -1,14 +1,20 @@
 ﻿using CnMedicineServer.Bll;
 using CnMedicineServer.Models;
+using OW;
 using OW.Data.Entity;
 using OW.ViewModel;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.Entity.Migrations;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -27,6 +33,50 @@ namespace CnMedicineServer.Controllers
     [EnableCors("*", "*", "*")/*crossDomain: true,*/]
     public class SpecialCasesInsomniaController : OwApiControllerBase
     {
+        static Lazy<ConcurrentDictionary<Guid, Type>> _AllAlgorithmTypes = new Lazy<ConcurrentDictionary<Guid, Type>>(() =>
+        {
+            var types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(c => c.GetTypes())
+                .Where(c => c.IsClass && !c.IsAbstract && typeof(CnMedicineAlgorithmBase).IsAssignableFrom(c)).Distinct();
+            var coll = from tmp in types
+                       let attr = tmp.GetCustomAttributes<OwAdditionalAttribute>(false).FirstOrDefault(c => c.Name == CnMedicineAlgorithmBase.SurveysTemplateIdName)
+                       where null != attr
+                       select Tuple.Create(attr.Value, tmp);
+            var result = new ConcurrentDictionary<Guid, Type>();
+            foreach (var item in coll)
+            {
+                if (Guid.TryParse(item.Item1, out Guid guid))
+                    result.TryAdd(guid, item.Item2);
+            }
+
+            return result;
+        }, true);
+
+        /// <summary>
+        /// 返回所有算法类。键是算法处理调查模板Id,值是算法类的类型。
+        /// </summary>
+        public static ConcurrentDictionary<Guid, Type> AllAlgorithmTypes
+        {
+            get
+            {
+                if (!_AllAlgorithmTypes.IsValueCreated) //若尚未初始化
+                {
+                    foreach (var item in _AllAlgorithmTypes.Value.Values)
+                    {
+                        var coll = from tmp in item.GetMethods(BindingFlags.Static | BindingFlags.DeclaredOnly | BindingFlags.NonPublic | BindingFlags.Public)
+                                   let attr = tmp.GetCustomAttributes<OwAdditionalAttribute>(true).FirstOrDefault(c => c.Name == CnMedicineAlgorithmBase.InitializationFuncName)
+                                   where null != attr
+                                   select tmp;
+                        var mi = coll.FirstOrDefault();
+                        if (null != mi)
+                            using (var db = new ApplicationDbContext())
+                                mi.Invoke(null, new object[] { db });
+                    }
+
+                }
+                return _AllAlgorithmTypes.Value;
+            }
+        }
+
         const string _SaveConclusionPath = "/web/interface/questionnaire/save";
 
         static Lazy<HttpClient> _LazyHttpClient = new Lazy<HttpClient>(() =>
@@ -46,6 +96,12 @@ namespace CnMedicineServer.Controllers
         public static HttpClient GetHttpClient()
         {
             return _LazyHttpClient.Value;
+        }
+
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        static SpecialCasesInsomniaController()
+        {
+            var tmp = AllAlgorithmTypes;
         }
 
         /// <summary>
@@ -115,6 +171,31 @@ namespace CnMedicineServer.Controllers
             {
                 return InternalServerError(err);
             }
+        }
+
+        /// <summary>
+        /// 获取指定调查问卷上一次调查问卷。
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>对不支持复诊的问卷不会返回任何数据。</returns>
+        [Route("LastSurveysFromId")]
+        [HttpGet]
+        [ResponseType(typeof(Surveys))]
+        public IHttpActionResult GetLastSurveysFromId([FromUri] Guid id)
+        {
+            Surveys result=null;
+            var db = DbContext;
+            var current = db.Surveys.Find(id);
+            if (null == current)
+                return BadRequest($"找不到指定Id={id}的调查问卷。");
+            if (!current.Template.UserState.Contains("支持复诊1"))
+                return Ok(result);
+            result = db.Surveys.Where(c => c.UserId == current.UserId && c.CreateUtc < current.CreateUtc).OrderByDescending(c => c.CreateUtc).FirstOrDefault();
+            if (null == result)   //若没找到
+                return Ok(result);
+            if ((current.CreateUtc - result.CreateUtc) > TimeSpan.FromDays(90))   //若超时
+                return Ok<Surveys>(null);
+            return Ok(result);
         }
 
         DateTime SubMonth(DateTime dateTime, int month)
@@ -217,7 +298,7 @@ namespace CnMedicineServer.Controllers
 
                 //DbContext.SaveChanges();
                 var strName = DbContext.SurveysTemplates.Find(model.TemplateId)?.Name;
-                CnMedicineAlgorithm algs;
+                CnMedicineAlgorithmBase algs;
                 SurveysConclusion result = null;
                 try
                 {
@@ -228,10 +309,16 @@ namespace CnMedicineServer.Controllers
                             result = algs.GetResult(model, DbContext);
                             break;
                         case "鼻炎":
-                            algs = new RhinitisMethods();
+                            algs = new RhinitisAlgorithm();
                             result = algs.GetResult(model, DbContext);
                             break;
+
                         default:
+                            if (AllAlgorithmTypes.TryGetValue(model.TemplateId, out Type type))
+                            {
+                                algs = TypeDescriptor.CreateInstance(null, type, null, null) as CnMedicineAlgorithmBase;
+                                result = algs.GetResult(model, DbContext);
+                            }
                             break;
                     }
                 }
@@ -239,9 +326,13 @@ namespace CnMedicineServer.Controllers
                 {
                     return InternalServerError(err);
                 }
+                result.GeneratedIdIfEmpty();
                 DbContext.SurveysConclusions.Add(result);
                 result.SaveThingPropertyItemsAsync(DbContext).Wait();
+                //写入图片
+                result?.Surveys?.SavePictures(DbContext);
                 model.ConclusionId = result.Id;
+
                 DbContext.SaveChanges();
                 try
                 {
@@ -303,10 +394,36 @@ namespace CnMedicineServer.Controllers
         [HttpGet]
         public IHttpActionResult GetSurveysById([FromUri]Guid surveysId)
         {
-            var result = DbContext.Set<Surveys>().Find(surveysId);
-            result?.LoadThingPropertyItemsAsync(DbContext).Wait();
+            var db = DbContext;
+            var result = db.Set<Surveys>().Find(surveysId);
+            result?.LoadThingPropertyItemsAsync(db).Wait();
+            result?.LoadPictures(db);
             return Ok(result);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="templateId"></param>
+        /// <returns></returns>
+        [Route("SetSurveysWithNumbers")]
+        [HttpPost]
+        [ResponseType(typeof(SurveysConclusion))]
+        public IHttpActionResult SetSurveysWithNumbers(List<int> model, Guid templateId)
+        {
+            Surveys answers = new Surveys() { TemplateId = templateId, UserId = "BySetSurveysWithNumbers" };
+            var db = DbContext;
+            var template = db.SurveysTemplates.Find(templateId);
+            var answerTemplates = template.Questions.SelectMany(c => c.Answers).ToArray();
+            var coll = from tmp in answerTemplates
+                       where model.Contains(tmp.OrderNum)
+                       select tmp;
+            answers.SurveysAnswers.AddRange(coll.Select(c => new SurveysAnswer() { TemplateId = c.Id }));
+            return SetSurveys(answers);
+        }
+
+
     }
 
 }

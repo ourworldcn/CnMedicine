@@ -64,18 +64,23 @@ namespace CnMedicineServer.Migrations
             return result;
         }
 
+        /// <summary>
+        /// 使用 <see cref="DbMigrationsConfiguration"/> 作为基类的副作用是该函数每次应用程序域启动后都会被执行一次。
+        /// </summary>
+        /// <param name="context"></param>
         protected override void Seed(Models.ApplicationDbContext context)
         {
             //  This method will be called after migrating to the latest version.
 
             //  You can use the DbSet<T>.AddOrUpdate() helper extension method 
             //  to avoid creating duplicate seed data.
-
+            
             Init(context);
         }
 
         private void Init(ApplicationDbContext context)
         {
+
             InitSurveysTemplates(context);
             Init1Async(context);
             InitRhinitisAsync(context);
@@ -100,7 +105,6 @@ namespace CnMedicineServer.Migrations
                     {
                         Id = Guid.Parse("A7458E0D-2BB9-4F99-9913-0B978F6E0CD2"),
                         Name = "鼻炎",
-
                     }
                 },
                 {
@@ -111,7 +115,7 @@ namespace CnMedicineServer.Migrations
                         Name = "失眠",
                        UserState= "支持复诊1",
                     }
-                }
+                },
             };
             //foreach (var key in dic.Keys)
             //{
@@ -151,7 +155,7 @@ namespace CnMedicineServer.Migrations
             }
             //添加调查问卷项
             task?.Wait();
-            var st = context.Set<SurveysTemplate>().Include(c=>c.Questions).Where(c => c.Name == "失眠").FirstOrDefault();
+            var st = context.Set<SurveysTemplate>().Include(c => c.Questions).Where(c => c.Name == "失眠").FirstOrDefault();
             if (null == st)
             {
                 st = context.Set<SurveysTemplate>().Create();

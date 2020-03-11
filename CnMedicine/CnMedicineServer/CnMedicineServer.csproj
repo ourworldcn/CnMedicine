@@ -217,16 +217,21 @@
     <Compile Include="BLL\CnMedicineAlgorithmBase.cs" />
     <Compile Include="BLL\Insomnia.cs" />
     <Compile Include="BLL\Rhinitis.cs" />
+    <Compile Include="BLL\TongJing.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\CnMedicineController.cs" />
     <Compile Include="Controllers\ControllerBase.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\ResourceController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
-    <Compile Include="Dao\BaseModels.cs" />
     <Compile Include="Dao\InsomniaModels.cs" />
+    <Compile Include="BLL\JingJianQiChuXue.cs" />
+    <Compile Include="Dao\JingJianQiChuXueModels.cs" />
+    <Compile Include="Dao\ResourceModels.cs" />
     <Compile Include="Dao\RhinitisModels.cs" />
     <Compile Include="Dao\SpecialCasesModels.cs" />
     <Compile Include="Dao\SurveysModels.cs" />
+    <Compile Include="Dao\TongJingModels.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -239,6 +244,7 @@
     <Compile Include="Models\AccountViewModels.cs" />
     <Compile Include="Models\CnMedicineModels.cs" />
     <Compile Include="Models\IdentityModels.cs" />
+    <Compile Include="Models\ResourceViewModels.cs" />
     <Compile Include="Models\ViewModelBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\ApplicationOAuthProvider.cs" />
@@ -253,6 +259,15 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\CnMedicineServer.xml" />
     <Content Include="Content\剂量矫正-失眠.txt" />
+    <Content Include="Content\痛经\痛经病-分型表.txt" />
+    <Content Include="Content\痛经\痛经病-症状归类表.txt" />
+    <Content Include="Content\痛经\痛经病-症状表.txt" />
+    <Content Include="Content\痛经\痛经病-经络辩证表.txt" />
+    <Content Include="Content\痛经\痛经病-药物加减表.txt" />
+    <Content Include="Content\经间期出血\症状归类表.txt" />
+    <Content Include="Content\经间期出血\症状表.txt" />
+    <Content Include="Content\经间期出血\经间期出血-分型表.txt" />
+    <Content Include="Content\经间期出血\经间期出血-经络辩证表.txt" />
     <Content Include="Content\药物加味-失眠.txt" />
     <Content Include="Content\药物输出-失眠.txt" />
     <Content Include="Content\评分表1-失眠.txt" />
@@ -352,6 +367,12 @@
     <EmbeddedResource Include="Migrations\201912120809368_Init.resx">
       <DependentUpon>201912120809368_Init.cs</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\OwEntityFramework\OwEntityFramework.csproj">
+      <Project>{02e02b13-eea4-4c08-ae0c-a4c66dc64233}</Project>
+      <Name>OwEntityFramework</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

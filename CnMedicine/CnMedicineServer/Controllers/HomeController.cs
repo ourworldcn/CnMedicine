@@ -1,4 +1,5 @@
-﻿using CnMedicineServer.Models;
+﻿using CnMedicineServer.Bll;
+using CnMedicineServer.Models;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -23,6 +24,8 @@ namespace CnMedicineServer.Controllers
             var objs2 = InsomniaCnDrugCorrection.DefaultCollection;
             var objs3 = InsomniaConversion11.DefaultCollection;
             var objs4 = InsomniaConversion12.DefaultCollection;
+            var ss = new JingJianQiChuXueAlgorithm();
+            //var types = SpecialCasesInsomniaController.AllAlgorithmTypes;
             return View();
         }
 

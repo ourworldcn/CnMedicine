@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
+using System.Data.Entity.Migrations;
 using System.Linq;
 using System.Runtime.Serialization;
 
@@ -57,11 +58,19 @@ namespace OW.Data.Entity
         /// 对选择题，有此标志为多选，无此标志为单选题。
         /// </summary>
         Multi = 1,
+        多重 = Multi,
 
         /// <summary>
         /// 有该标志，这个问题不填写答案，否则需要填写。
         /// </summary>
         AllowEmpty = 2,
+        可空 = AllowEmpty,
+
+        /// <summary>
+        /// 本项存在附属图片。
+        /// </summary>
+        Picture = 4,
+        图片 = Picture,
 
         /// <summary>
         /// 获得子类型的掩码。
@@ -72,11 +81,13 @@ namespace OW.Data.Entity
         /// 判断题。
         /// </summary>
         Judgment = 256,
+        判断 = Judgment,
 
         /// <summary>
         /// 选择题。单选题。
         /// </summary>
         Choice = 512,
+        选择 = Choice,
 
         /// <summary>
         /// 多选题。
@@ -87,7 +98,7 @@ namespace OW.Data.Entity
         /// 问答题。
         /// </summary>
         Describe = 1024,
-
+        问答 = Describe,
     }
 
     /// <summary>
@@ -107,7 +118,7 @@ namespace OW.Data.Entity
         /// 扩展属性的字符串。如:支持复诊1。表示是需要调用上次的复诊记录比对。
         /// </summary>
         [DataMember]
-        public string  UserState { get; set; }
+        public string UserState { get; set; }
 
         public object Clone()
         {
@@ -182,7 +193,7 @@ namespace OW.Data.Entity
         public virtual List<SurveysAnswerTemplate> Answers { get; set; }
 
         /// <summary>
-        /// 对问题的说明。
+        /// 对问题的说明。即问题的名字。
         /// </summary>
         [DataMember]
         public string QuestionTitle { get; set; }
@@ -280,7 +291,7 @@ namespace OW.Data.Entity
         public bool AllowAdditional { get; set; }
 
         /// <summary>
-        /// 内部逻辑后期使用的数据。客户端可以不用管。
+        /// 内部逻辑后期使用的数据。客户端可以不用管。没有采用其它编码方式是为了符合医生习惯，如果使用Json之类模式，还需要额外的转换步骤。但的确可以使用其他模式，只要应用自己可以解释即可。
         /// 具体到该项目，例如"编号:21;症候:侧头痛;脏腑评分：心+1，肝+1，胆+1，胃+1，小肠+1;证型评分:火亢+1，气郁+1，湿热+1，脾胃不和+1，少阳枢机不利+1，痰热+1"，为避免输入错误分割时能理解中文符号。
         /// 这里未来不排除是记录了一个Id,连接到其它表。但无论如何，这个就是通用调查问卷子系统和其它子系统的一种连接手段，问卷子系统本身不考虑。
         /// </summary>
@@ -337,7 +348,35 @@ namespace OW.Data.Entity
         /// 答案项的导航属性。必填。
         /// </summary>
         [DataMember]
-        public virtual List<SurveysAnswer> SurveysAnswers { get; set; }
+        public virtual List<SurveysAnswer> SurveysAnswers { get; set; } = new List<SurveysAnswer>();
+
+        /// <summary>
+        /// 加载图片信息。
+        /// </summary>
+        /// <param name="dbContext"></param>
+        public void LoadPictures(DbContext dbContext)
+        {
+            if (null == SurveysAnswers)
+                return;
+            foreach (var item in SurveysAnswers)
+            {
+                item.LoadPictures(dbContext);
+            }
+        }
+
+        /// <summary>
+        /// 保存图片信息。
+        /// </summary>
+        /// <param name="dbContext"></param>
+        public void SavePictures(DbContext dbContext)
+        {
+            if (null == SurveysAnswers)
+                return;
+            foreach (var item in SurveysAnswers)
+            {
+                item.SavePictures(dbContext);
+            }
+        }
 
         /// <summary>
         /// 这是通用调查问卷子系统与其它系统交互使用的属性。
@@ -410,6 +449,25 @@ namespace OW.Data.Entity
         /// </summary>
         [DataMember(IsRequired = false)]
         public string UserState { get; set; }
+
+        /// <summary>
+        /// 附属的图片，仅在模板指定了图片属性时有效。否则总返回空集合。
+        /// </summary>
+        [DataMember]
+        [NotMapped]
+        public virtual List<ResourceStore> Pictures { get; set; } = new List<ResourceStore>();
+
+        public void LoadPictures(DbContext dbContext)
+        {
+            var coll = dbContext.Set<ResourceStore>().Where(c => c.ThingEntityId == Id);
+            Pictures = coll.ToList();
+        }
+
+        public void SavePictures(DbContext dbContext)
+        {
+            if (null != Pictures && Pictures.Count > 0)
+                dbContext.Set<ResourceStore>().AddOrUpdate(Pictures.ToArray());
+        }
     }
 
     /// <summary>

@@ -17,194 +17,6 @@ using System.Threading.Tasks;
 
 namespace OW.Data.Entity
 {
-    /// <summary>
-    /// 指定属性，字段从文本文件映射。
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, Inherited = false, AllowMultiple = true)]
-    public sealed class TextFieldNameAttribute : Attribute
-    {
-        // See the attribute guidelines at 
-        //  http://go.microsoft.com/fwlink/?LinkId=85236
-        private readonly string _FieldName;
-
-        // This is a positional argument
-        public TextFieldNameAttribute(string fieldName)
-        {
-            _FieldName = fieldName;
-
-            // TODO: Implement code here
-
-        }
-
-        public string FieldName
-        {
-            get { return _FieldName; }
-        }
-
-        // This is a named argument
-        //public int NamedInt { get; set; }
-    }
-
-    /// <summary>
-    /// 管理文本文件的上下文。
-    /// </summary>
-    public class TextFileContext : IDisposable
-    {
-        public static void Fill(System.IO.TextReader reader, DataTable dataTable, string fieldSeparator, bool hasHeader = false)
-        {
-            Debug.Assert(hasHeader);    //暂时不管无标头
-            var separator = new string[] { fieldSeparator };
-            byte[] bof = new byte[4];
-            //var b = stream.Read(bof,0,4);
-            string[] header;
-            string headerString = reader.ReadLine();
-            header = headerString.Split(separator, StringSplitOptions.None);
-            foreach (var item in header)
-            {
-                dataTable.Columns.Add(item, typeof(string));
-
-            }
-            for (string line = reader.ReadLine(); null != line; line = reader.ReadLine())
-            {
-                var objArray = line.Split(separator, StringSplitOptions.None);
-                dataTable.Rows.Add(objArray);
-            }
-        }
-
-        public TextFileContext()
-        {
-
-        }
-
-        public TextFileContext(string path)
-        {
-            _Path = path;
-        }
-
-        string _Path;
-
-        public virtual List<T> GetList<T>(string fileName) where T : new()
-        {
-            string fullPath = Path.Combine(_Path, fileName);
-            using (var stream = File.OpenRead(fullPath))
-            using (var reader = new StreamReader(stream, Encoding.Default))
-                return GetList<T>(reader);
-        }
-
-        public virtual List<T> GetList<T>(TextReader reader) where T : new()
-        {
-            List<T> result = new List<T>();
-            DataTable dt = new DataTable();
-            Task task = Task.Run(() => Fill(reader, dt, "\t", true));
-            var pis = TypeDescriptor.GetProperties(typeof(T)).OfType<PropertyDescriptor>();
-            task.Wait();
-            var mapping = pis.Select(c =>
-                {
-                    var name = (c.Attributes[typeof(TextFieldNameAttribute)] as TextFieldNameAttribute)?.FieldName;
-                    if (string.IsNullOrWhiteSpace(name))
-                        name = c.Name;
-                    var column = dt.Columns[name];
-                    if (null == column)
-                        return null;
-                    int index = column.Ordinal;
-
-                    return new
-                    {
-                        pi = c,
-                        Index = index,
-                    };
-                }).Where(c => null != c).ToArray();
-
-            foreach (DataRow row in dt.Rows)
-            {
-                var tmp = new T();
-                foreach (var item in mapping)
-                {
-                    var val = ConvertEx(row[item.Index], item.pi.PropertyType);
-                    item.pi.SetValue(tmp, val);
-                }
-                result.Add(tmp);
-            }
-            return result;
-        }
-
-        private object ConvertEx(object obj, Type type)
-        {
-            object result = null;
-            switch (Type.GetTypeCode(type))
-            {
-                case TypeCode.Empty:
-                    break;
-                case TypeCode.Object:
-                    var mi = type.GetMethod("Parse", BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy, null, new Type[] { typeof(string) }, null);
-                    if (null != mi)
-                        result = mi.Invoke(null, new object[] { obj });
-                    break;
-                case TypeCode.DBNull:
-                    break;
-                case TypeCode.Boolean:
-                case TypeCode.Char:
-                case TypeCode.SByte:
-                case TypeCode.Byte:
-                case TypeCode.Int16:
-                case TypeCode.UInt16:
-                case TypeCode.Int32:
-                case TypeCode.UInt32:
-                case TypeCode.Int64:
-                case TypeCode.UInt64:
-                case TypeCode.Single:
-                case TypeCode.Double:
-                case TypeCode.Decimal:
-                case TypeCode.DateTime:
-                case TypeCode.String:
-                    result = Convert.ChangeType(obj, type);
-                    break;
-                default:
-                    break;
-            }
-            return result;
-        }
-
-
-
-        #region IDisposable Support
-        private bool disposedValue = false; // 要检测冗余调用
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    // TODO: 释放托管状态(托管对象)。
-                }
-
-                // TODO: 释放未托管的资源(未托管的对象)并在以下内容中替代终结器。
-                // TODO: 将大型字段设置为 null。
-
-                disposedValue = true;
-            }
-        }
-
-        // TODO: 仅当以上 Dispose(bool disposing) 拥有用于释放未托管资源的代码时才替代终结器。
-        // ~TextFileContext() {
-        //   // 请勿更改此代码。将清理代码放入以上 Dispose(bool disposing) 中。
-        //   Dispose(false);
-        // }
-
-        // 添加此代码以正确实现可处置模式。
-        public void Dispose()
-        {
-            // 请勿更改此代码。将清理代码放入以上 Dispose(bool disposing) 中。
-            Dispose(true);
-            // TODO: 如果在以上内容中替代了终结器，则取消注释以下行。
-            // GC.SuppressFinalize(this);
-        }
-        #endregion
-
-
-    }
-
     public class EntityUtil
     {
         /// <summary>
@@ -212,6 +24,9 @@ namespace OW.Data.Entity
         /// </summary>
         public const string KvPatternString = @"[\p{Po}\s]*(?<name>.*?)[\s]*(?<value>[\+\-]?\d+)";
 
+        /// <summary>
+        /// 分开数组的正则字符串。
+        /// </summary>
         public const string ListPatternString = @"[\p{Po}\s]*(?<name>[^\p{Po}\s]*)[\s]*";
 
         /// <summary>
@@ -241,7 +56,7 @@ namespace OW.Data.Entity
         }
 
         /// <summary>
-        /// 
+        /// 使用模式 <see cref="ListPatternString"/> 进行分组。
         /// </summary>
         /// <param name="guts"></param>
         /// <returns></returns>
@@ -292,12 +107,42 @@ namespace OW.Data.Entity
 
     }
 
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
+    public sealed class WeakForeignKeyAttribute : Attribute
+    {
+        // See the attribute guidelines at 
+        //  http://go.microsoft.com/fwlink/?LinkId=85236
+        readonly string _Name;
+
+        // This is a positional argument
+        public WeakForeignKeyAttribute(string name)
+        {
+            _Name = name;
+
+            // TODO: Implement code here
+
+        }
+
+        public string Name
+        {
+            get { return _Name; }
+        }
+        
+        // This is a named argument
+        public int NamedInt { get; set; }
+    }
+
     /// <summary>
     /// 以 Guid 为主键的实体类基类。
     /// </summary>
     [DataContract]
     public class EntityWithGuid
     {
+        /// <summary>
+        /// 表示一种不在数据库中建立外键关系的连接。使用<see cref="OwAdditionalAttribute"/>标注，这里是其Name的内容。
+        /// </summary>
+        public const string WeakAssociationName = "75A29B4D-A39E-46DA-8056-1F2FBF2A2A58";
+
         /// <summary>
         /// 构造函数。
         /// </summary>
@@ -324,9 +169,10 @@ namespace OW.Data.Entity
         public Guid Id { get; set; }
 
         /// <summary>
-        /// 如果Id是空则生成新Id。
+        /// 如果Id是空（Guid.Empty）则生成新Id。
         /// </summary>
         /// <returns>true生成了新Id,false没有生成新Id。</returns>
+        [Description("如果Id是空（Guid.Empty）则生成新Id。")]
         public bool GeneratedIdIfEmpty()
         {
             if (Id != Guid.Empty)
@@ -340,6 +186,7 @@ namespace OW.Data.Entity
     /// 标识事物的实体基类。封装一些共有属性。
     /// </summary>
     [DataContract]
+    [Description("标识事物的实体基类。封装一些共有属性。")]
     public class ThingEntityBase : EntityWithGuid
     {
         /// <summary>
@@ -351,9 +198,19 @@ namespace OW.Data.Entity
         }
 
         /// <summary>
+        /// 构造函数。
+        /// </summary>
+        /// <param name="id">指定该实体对象的Id。</param>
+        public ThingEntityBase(Guid id) : base(id)
+        {
+
+        }
+
+        /// <summary>
         /// 名称。
         /// </summary>
         [DataMember]
+        [Description("名称。")]
         public string Name { get; set; }
 
         /// <summary>
@@ -361,18 +218,21 @@ namespace OW.Data.Entity
         /// </summary>
         [MaxLength(8)]
         [DataMember]
+        [Description("一般性简称。最多8个字符。")]
         public string ShortName { get; set; }
 
         /// <summary>
         /// 一般性描述信息。
         /// </summary>
         [DataMember]
+        [Description("一般性描述信息。")]
         public string Description { get; set; }
 
         /// <summary>
         /// 创建的时间。注意使用UTC时间！
         /// </summary>
         [DataMember]
+        [Description("创建的时间。注意使用UTC时间！")]
         public DateTime CreateUtc { get; set; } = DateTime.UtcNow;
 
         /// <summary>
@@ -380,6 +240,7 @@ namespace OW.Data.Entity
         /// </summary>
         [DataMember]
         [NotMapped]
+        [Description("描述事物某个属性的对象。这个对象记录的信息服务器不加理解，仅供使用接口的程序使用。")]
         public virtual List<ThingPropertyItem> ThingPropertyItems { get; set; }
 
         /// <summary>
@@ -440,13 +301,15 @@ namespace OW.Data.Entity
         /// </summary>
         [DataMember]
         [MaxLength(32)]
+        [Description("属性名称。只能是字符串。最长32字符。")]
         public string Name { get; set; }
 
         /// <summary>
-        /// 属性的值。只能是字符串。最长256字符
+        /// 属性的值。只能是字符串。最长256字符。
         /// </summary>
         [DataMember]
         [MaxLength(256)]
+        [Description("属性的值。只能是字符串。最长256字符。")]
         public string Value { get; set; }
 
         /// <summary>
@@ -455,12 +318,14 @@ namespace OW.Data.Entity
         /// </summary>
         [Index]
         [DataMember(IsRequired = false)]
+        [Description("所附属的实体的Id。在实体中传送可忽略。")]
         public Guid ThingEntityId { get; set; }
 
         /// <summary>
         /// 排序号。同一个实体的多个扩展属性按此字段升序排序。序号不必连续，相等序号顺序随机。
         /// </summary>
         [DataMember]
+        [Description("排序号。同一个实体的多个扩展属性按此字段升序排序。序号不必连续，相等序号顺序随机。")]
         public int OrderNum { get; set; } = 0;
     }
 

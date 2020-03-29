@@ -6,7 +6,9 @@ using System.Data;
 using System.Data.Common;
 using System.Data.Entity.Infrastructure;
 using System.Data.OleDb;
+using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -51,6 +53,13 @@ namespace HelpTest
         }
         private void Form1_Load(object sender, EventArgs e)
         {
+            string patt = @"(?:<Separator>[\p{Po}-[\*]])?(?<number>\d*\.?\d*)";
+            var ms = Regex.Matches("1*2,2,4，5", patt);
+            foreach (var item in ms.OfType<Match>())
+            {
+                Debug.WriteLine(item.Groups["number"]);
+            }
+            var f1 = decimal.Parse(".3");
             //var xx = (MyEnum)Convert.ChangeType("选择 , 多重", typeof(MyEnum));
             var td = TypeDescriptor.GetConverter(typeof(MyEnum));
             var xx = (MyEnum)td.ConvertFrom("选择 , 多重");

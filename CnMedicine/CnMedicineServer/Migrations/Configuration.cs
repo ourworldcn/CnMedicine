@@ -120,7 +120,7 @@ namespace CnMedicineServer.Migrations
             //foreach (var key in dic.Keys)
             //{
             //    if (oldValues.TryGetValue(key, out SurveysTemplate template))
-            //        EntityUtil.CopyTo(template, dic[key], $"{nameof(SurveysTemplate.Questions)}");
+            //        EntityUtility.CopyTo(template, dic[key], $"{nameof(SurveysTemplate.Questions)}");
             //}
             context.SurveysTemplates.AddOrUpdate(dic.Values.ToArray());
             context.SaveChanges();

@@ -112,7 +112,35 @@ namespace CnMedicineServer.Bll
                     {
                         var coll = AllNumbers.Where(c => GetTypeNumber(c) == "C");    //必有分型编号
                         var collmust = TongJingFenxing.DefaultCollection.Where(c => c.Numbers.Intersect(coll).Count() > 0); //必有分型
-                        _FenXing = AllNumbers.GetNumbers(TongJingFenxing.DefaultCollection, c => c.Numbers, c => c.Fact, c => c).Union(collmust).ToList();
+                        var coll1 = from tmp in TongJingFenxing.DefaultCollection
+                                    let Matching = (float)AllNumbers.Intersect(tmp.Numbers).Count() / tmp.Numbers.Count   //匹配度
+                                    where Matching >= tmp.ThresholdsOfLowest    //大于或等于最低匹配度
+                                    select new { Matching, FenXing = tmp };
+                        var coll2 = from tmp in coll1
+                                    group tmp by tmp.FenXing.GroupNumber;   //按分组号分组
+                        var coll3 = from tmp in coll2
+                                    where tmp.Any(c => c.Matching >= c.FenXing.Thresholds)    //至少有一個可以最終選擇
+                                    let AvgMatching = tmp.Average(c => c.Matching)    //每组平均匹配度
+                                    orderby AvgMatching descending  //最高平均匹配度在最前
+                                    select new { Group = tmp, AvgMatching };
+                        var lst = coll3.ToList();
+                        var maxAvgMatching = lst.FirstOrDefault()?.AvgMatching; //最大平均匹配度
+                        IEnumerable<TongJingFenxing> result = Enumerable.Empty<TongJingFenxing>();
+                        if (maxAvgMatching.HasValue)   //若有匹配
+                        {
+                            result = lst.TakeWhile(c => c.AvgMatching >= maxAvgMatching.Value - 0.1)   //获得入选组
+                                .Select(c => c.Group.OrderByDescending(subc => subc.Matching).FirstOrDefault())   //入选组中匹配度最高的元素
+                                .Where(c => c != null)
+                                .Where(c => c.Matching >= c.FenXing.Thresholds) //大于或等于匹配度
+                                .Select(c => c.FenXing);  //最终分型
+                        }
+                        _FenXing = result.Union(collmust).ToList();
+                        if (!_FenXing.Any()) //若无分型匹配
+                        {
+                            var item = coll1.OrderByDescending(c => c.Matching).Where(c => c.Matching >= c.FenXing.ThresholdsOfLowest).FirstOrDefault();
+                            if (null != item)
+                                _FenXing.Add(item.FenXing);
+                        }
                     }
                 return _FenXing;
             }
@@ -145,7 +173,7 @@ namespace CnMedicineServer.Bll
         private List<TongJingMedicineCorrection> _MedicineCorrection;
 
         /// <summary>
-        /// 药物加减项。
+        /// 药物加减项。包含增加和减少得药物。
         /// </summary>
         public List<TongJingMedicineCorrection> MedicineCorrection
         {
@@ -154,8 +182,8 @@ namespace CnMedicineServer.Bll
                 lock (SyncLocker)
                     if (null == _MedicineCorrection)
                     {
-                        var coll = TongJingMedicineCorrection.DefaultCollection.Join(FenXing, c => c.ZhengXing, c => c.Fenxing, (c1, c2) => c1);  //备选项
-                        var result = coll.Where(c => (float)AllNumbers.Intersect(c.Numbers).Count() / c.Numbers.Count >= c.Thresholds);
+                        var result = TongJingMedicineCorrection.DefaultCollection
+                            .Where(c => (float)AllNumbers.Intersect(c.Numbers).Count() / c.Numbers.Count >= c.Thresholds);  //达到阈值要求
                         _MedicineCorrection = result.ToList();
                     }
                 return _MedicineCorrection;
@@ -169,8 +197,20 @@ namespace CnMedicineServer.Bll
         {
             get
             {
-                var coll = FenXing.SelectMany(c => c.YaowuList).Union(JingluoBianzhengs.SelectMany(c => c.AllYao)).Union(MedicineCorrection.SelectMany(c => c.Drugs)).GroupBy(c => c.Item1);
-                var tmp = coll.Select(c => Tuple.Create(c.Key, c.Max(subc => subc.Item2))).ToList();
+                var coll = FenXing.SelectMany(c => c.YaowuList).Union(JingluoBianzhengs.SelectMany(c => c.AllYao))  //辩证药物
+                    .Union(MedicineCorrection.Where(c => c.TypeNumber == 1).SelectMany(c => c.Drugs)).GroupBy(c => c.Item1);    //增加的药物
+                var tmp = coll.Select(c => Tuple.Create(c.Key, c.Max(subc => subc.Item2))).ToList();    //除最低用药外的药物
+                var mins = MedicineCorrection.Where(c => c.TypeNumber == 2).SelectMany(c => c.Drugs).GroupBy(c => c.Item1)
+                    .ToDictionary(c => c.Key, c => c.Min(sunc => sunc.Item2));   //最低剂量药物
+                for (int i = tmp.Count - 1; i >= 0; i--)
+                {
+                    var item = tmp[i];
+                    if (mins.TryGetValue(item.Item1, out decimal d))  //如果需要最小计量
+                    {
+                        tmp.RemoveAt(i);
+                        tmp.Insert(i, Tuple.Create(item.Item1, d));
+                    }
+                }
                 var result = new List<Tuple<string, decimal>>();
                 //乱序
                 Random rnd = new Random();

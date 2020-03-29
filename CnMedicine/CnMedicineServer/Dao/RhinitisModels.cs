@@ -94,7 +94,7 @@ namespace CnMedicineServer.Models
                 lock (this)
                     if (null == _CnVisceralProperties)
                     {
-                        _CnVisceralProperties = EntityUtil.GetTuples(CnVisceralScore);
+                        _CnVisceralProperties = EntityUtility.GetTuples(CnVisceralScore);
                     }
                 return _CnVisceralProperties;
             }
@@ -121,7 +121,7 @@ namespace CnMedicineServer.Models
                 lock (this)
                     if (null == _CnPhenomenonProperties)
                     {
-                        _CnPhenomenonProperties = EntityUtil.GetTuples(CnPhenomenonScore);
+                        _CnPhenomenonProperties = EntityUtility.GetTuples(CnPhenomenonScore);
                     }
                 return _CnPhenomenonProperties;
             }
@@ -150,7 +150,7 @@ namespace CnMedicineServer.Models
                 lock (this)
                     if (null == _CnPathogenProperties)
                     {
-                        _CnPathogenProperties = EntityUtil.GetTuples(CnPathogenScore);
+                        _CnPathogenProperties = EntityUtility.GetTuples(CnPathogenScore);
                     }
                 return _CnPathogenProperties;
             }
@@ -247,7 +247,7 @@ namespace CnMedicineServer.Models
                 lock (this)
                     if (null == _CnDrugProperties)
                     {
-                        _CnDrugProperties = EntityUtil.GetTuples(CnDrugString);
+                        _CnDrugProperties = EntityUtility.GetTuples(CnDrugString);
                     }
                 return _CnDrugProperties;
             }
@@ -324,7 +324,7 @@ namespace CnMedicineServer.Models
             {
                 lock (this)
                     if (null == _Numbers)
-                        _Numbers = EntityUtil.GetArray(MatchString);
+                        _Numbers = EntityUtility.GetArray(MatchString);
                 return _Numbers;
             }
         }
@@ -350,7 +350,7 @@ namespace CnMedicineServer.Models
                 lock (this)
                     if (null == _CnDrugProperties)
                     {
-                        _CnDrugProperties = EntityUtil.GetTuples(CnDrugString);
+                        _CnDrugProperties = EntityUtility.GetTuples(CnDrugString);
                     }
                 return _CnDrugProperties;
             }

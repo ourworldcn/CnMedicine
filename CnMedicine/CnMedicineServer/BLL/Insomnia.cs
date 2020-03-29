@@ -28,7 +28,7 @@ namespace CnMedicineServer.Bll
         /// <returns>0初诊，1复诊。</returns>
         public static int GetDiagnosisCount(this Surveys surveys)
         {
-            var ary = EntityUtil.GetTuples(surveys.UserState);
+            var ary = EntityUtility.GetTuples(surveys.UserState);
             var flag = ary.FirstOrDefault(c => c.Item1 == "诊次")?.Item2 ?? 0;
             return (int)flag;
         }
@@ -40,7 +40,7 @@ namespace CnMedicineServer.Bll
         /// <param name="count">0初诊，1复诊。</param>
         public static void SetDiagnosisCount(this Surveys surveys, int count)
         {
-            var ary = EntityUtil.GetTuples(surveys.UserState);
+            var ary = EntityUtility.GetTuples(surveys.UserState);
             var flag = ary.FirstOrDefault(c => c.Item1 == "诊次");
             if (null != flag)
                 ary.Remove(flag);
@@ -422,7 +422,7 @@ namespace CnMedicineServer.Bll
                     continue;
                 }
                 //选择题
-                var props = EntityUtil.GetTuples(answerTemplate.UserState);
+                var props = EntityUtility.GetTuples(answerTemplate.UserState);
                 var number = props.FirstOrDefault(c => c.Item1 == "编号");
                 if (null == number)
                     continue;
@@ -432,7 +432,7 @@ namespace CnMedicineServer.Bll
 
                 result.InsomniaConversion11s.Add(conv11);
 
-                var propIns = EntityUtil.GetTuples(answer.UserState);
+                var propIns = EntityUtility.GetTuples(answer.UserState);
                 var invalid = propIns.FirstOrDefault(c => c.Item1 == "无效");
                 if (null != invalid && invalid.Item2 != 0)   //若存在无效条目
                 {

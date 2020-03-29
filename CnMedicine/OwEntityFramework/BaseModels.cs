@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -17,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace OW.Data.Entity
 {
-    public class EntityUtil
+    public class EntityUtility
     {
         /// <summary>
         /// 捕获模式字符串。如：:生地黄-9,玄参9，天冬15;麦冬(醋熏）15;丹参（后下）9。当归9、党参9茯神15炒酸枣仁15远志6五味子6龙骨（醅)-30
@@ -107,31 +108,6 @@ namespace OW.Data.Entity
 
     }
 
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
-    public sealed class WeakForeignKeyAttribute : Attribute
-    {
-        // See the attribute guidelines at 
-        //  http://go.microsoft.com/fwlink/?LinkId=85236
-        readonly string _Name;
-
-        // This is a positional argument
-        public WeakForeignKeyAttribute(string name)
-        {
-            _Name = name;
-
-            // TODO: Implement code here
-
-        }
-
-        public string Name
-        {
-            get { return _Name; }
-        }
-        
-        // This is a named argument
-        public int NamedInt { get; set; }
-    }
-
     /// <summary>
     /// 以 Guid 为主键的实体类基类。
     /// </summary>
@@ -142,6 +118,21 @@ namespace OW.Data.Entity
         /// 表示一种不在数据库中建立外键关系的连接。使用<see cref="OwAdditionalAttribute"/>标注，这里是其Name的内容。
         /// </summary>
         public const string WeakAssociationName = "75A29B4D-A39E-46DA-8056-1F2FBF2A2A58";
+
+        /// <summary>
+        /// 加载隐式连接的属性。
+        /// </summary>
+        /// <param name="context"></param>
+        public void LoadWeakAssociation(DbContext context)
+        {
+            var peoperties = TypeDescriptor.GetProperties(this).OfType<PropertyDescriptor>();
+            var coll = from tmp in peoperties
+                       where typeof(ICollection).IsAssignableFrom(tmp.PropertyType)
+                       let attr = tmp.PropertyType.GetCustomAttributes<OwAdditionalAttribute>().Where(c => c.Name == WeakAssociationName).FirstOrDefault()
+                       where null != attr
+                       select tmp;
+
+        }
 
         /// <summary>
         /// 构造函数。
@@ -238,8 +229,8 @@ namespace OW.Data.Entity
         /// <summary>
         /// 描述事物某个属性的对象。这个对象记录的信息服务器不加理解，仅供使用接口的程序使用。
         /// </summary>
-        [DataMember]
         [NotMapped]
+        [DataMember]
         [Description("描述事物某个属性的对象。这个对象记录的信息服务器不加理解，仅供使用接口的程序使用。")]
         public virtual List<ThingPropertyItem> ThingPropertyItems { get; set; }
 

@@ -16,6 +16,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -82,7 +83,7 @@ namespace CnMedicineServer.Controllers
         static Lazy<HttpClient> _LazyHttpClient = new Lazy<HttpClient>(() =>
         {
             var result = new HttpClient();
-            result.BaseAddress = new Uri("http://39.104.89.104:8086");
+            result.BaseAddress = new Uri("http://39.104.89.104:7000");
             result.DefaultRequestHeaders.Accept.Clear();
             result.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
@@ -133,7 +134,7 @@ namespace CnMedicineServer.Controllers
             result = coll.FirstOrDefault();
             if (null != result && !string.IsNullOrWhiteSpace(result.UserState))
             {
-                var ary = EntityUtil.GetTuples(result.UserState);
+                var ary = EntityUtility.GetTuples(result.UserState);
                 var flag = ary.FirstOrDefault(c => c.Item1 == "复诊")?.Item2 ?? 0;
                 if (flag > 0)
                     result = null;
@@ -160,7 +161,7 @@ namespace CnMedicineServer.Controllers
                 var result = coll.FirstOrDefault();
                 if (null != result && !string.IsNullOrWhiteSpace(result.UserState))
                 {
-                    var ary = EntityUtil.GetTuples(result.UserState);
+                    var ary = EntityUtility.GetTuples(result.UserState);
                     var flag = ary.FirstOrDefault(c => c.Item1 == "复诊")?.Item2 ?? 0;
                     if (flag > 0)
                         result = null;
@@ -423,7 +424,12 @@ namespace CnMedicineServer.Controllers
             return SetSurveys(answers);
         }
 
-
+        [Route("FenXingConfig")]
+        [ResponseType(typeof(JingJianQiChuXueFenXing))]
+        public IHttpActionResult GetFenXingConfig()
+        {
+            return Ok();
+        }
     }
 
 }

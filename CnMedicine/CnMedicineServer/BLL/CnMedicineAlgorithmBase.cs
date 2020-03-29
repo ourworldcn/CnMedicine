@@ -162,7 +162,7 @@ namespace CnMedicineServer.Bll
                         {
                             if (AnswerTemplates.TryGetValue(item, out SurveysAnswerTemplate surveysAnswer))
                             {
-                                var tuples = EntityUtil.GetTuples(surveysAnswer.UserState);
+                                var tuples = EntityUtility.GetTuples(surveysAnswer.UserState);
                                 if (tuples.Any(c => "类型号A" == c.Item1 && 1 == c.Item2))
                                     _TypeNumeber.Add(item, "A");
                                 else if (tuples.Any(c => "类型号B" == c.Item1 && 1 == c.Item2))

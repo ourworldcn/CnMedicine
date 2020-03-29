@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading;
 
 namespace CnMedicineServer.Models
@@ -9,6 +10,7 @@ namespace CnMedicineServer.Models
     /// <summary>
     /// 经间期出血-分型表。
     /// </summary>
+    [DataContract]
     public class JingJianQiChuXueFenXing
     {
         // 分型	编号	阈值	药物			对症药
@@ -32,6 +34,14 @@ namespace CnMedicineServer.Models
             {
                 return _DefaultCollection.Value;
             }
+        }
+
+        /// <summary>
+        /// 构造函数。
+        /// </summary>
+        public JingJianQiChuXueFenXing()
+        {
+
         }
 
         /// <summary>
@@ -59,7 +69,7 @@ namespace CnMedicineServer.Models
                 {
                     if (null == _Numbers)
                     {
-                        _Numbers = EntityUtil.GetArray(NumbersString).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => int.Parse(c)).ToList();
+                        _Numbers = EntityUtility.GetArray(NumbersString).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => int.Parse(c)).ToList();
                     }
                 }
                 return _Numbers;
@@ -71,6 +81,7 @@ namespace CnMedicineServer.Models
         /// 阈值。
         /// </summary>
         [TextFieldName("阈值")]
+        [DataMember]
         public float Thresholds { get; set; }
 
         /// <summary>
@@ -90,6 +101,7 @@ namespace CnMedicineServer.Models
         /// <summary>
         /// 所有药物的列表。
         /// </summary>
+        [DataMember]
         public List<Tuple<string, decimal>> CnDrugs
         {
             get
@@ -97,10 +109,14 @@ namespace CnMedicineServer.Models
                 lock (this)
                     if (null == _CnDrugs)
                     {
-                        _CnDrugs = EntityUtil.GetTuples(CnDrugString);
-                        _CnDrugs.AddRange(EntityUtil.GetTuples(DuiZhengCnDrugString));
+                        _CnDrugs = EntityUtility.GetTuples(CnDrugString);
+                        _CnDrugs.AddRange(EntityUtility.GetTuples(DuiZhengCnDrugString));
                     }
                 return _CnDrugs;
+            }
+            set
+            {
+                _CnDrugs = value.ToList();
             }
         }
 
@@ -164,7 +180,7 @@ namespace CnMedicineServer.Models
                 {
                     if (null == _Numbers1)
                     {
-                        _Numbers1 = EntityUtil.GetArray(NumersString1).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => int.Parse(c)).ToList();
+                        _Numbers1 = EntityUtility.GetArray(NumersString1).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => int.Parse(c)).ToList();
                     }
                 }
                 return _Numbers1;
@@ -190,7 +206,7 @@ namespace CnMedicineServer.Models
                 {
                     if (null == _Numbers2)
                     {
-                        _Numbers2 = EntityUtil.GetArray(NumersString2).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => int.Parse(c)).ToList();
+                        _Numbers2 = EntityUtility.GetArray(NumersString2).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => int.Parse(c)).ToList();
                     }
                 }
                 return _Numbers2;
@@ -221,7 +237,7 @@ namespace CnMedicineServer.Models
                 lock (this)
                     if (null == _CnDrugs)
                     {
-                        _CnDrugs = EntityUtil.GetTuples(DuiZhengCnDrugString);
+                        _CnDrugs = EntityUtility.GetTuples(DuiZhengCnDrugString);
                     }
                 return _CnDrugs;
             }
@@ -286,7 +302,7 @@ namespace CnMedicineServer.Models
                 {
                     if (null == _Numbers)
                     {
-                        _Numbers = EntityUtil.GetArray(NumbersString).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => int.Parse(c)).ToList();
+                        _Numbers = EntityUtility.GetArray(NumbersString).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => int.Parse(c)).ToList();
                     }
                 }
                 return _Numbers;

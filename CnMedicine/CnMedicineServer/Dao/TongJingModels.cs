@@ -32,6 +32,11 @@ namespace CnMedicineServer.Models
             }
         }
 
+        /*
+         * 分型组号	分型号	编号	阈值	最低阈值	方药
+         * 10	101	1104,1114，10002,3109,5108,3112，1113,4416，2202,3502。	0.65	0.3	乌药10，香附15，枳实20，郁金10，柴胡20
+         * */
+
         /// <summary>
         /// 构造函数。
         /// </summary>
@@ -65,7 +70,7 @@ namespace CnMedicineServer.Models
                 {
                     if (null == _Numbers)
                     {
-                        _Numbers = EntityUtil.GetArray(Number.Trim('\"')).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => int.Parse(c)).ToList();
+                        _Numbers = EntityUtility.GetArray(Number.Trim('\"')).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => int.Parse(c)).ToList();
                     }
                 }
                 return _Numbers;
@@ -78,7 +83,16 @@ namespace CnMedicineServer.Models
         /// 阈值。
         /// </summary>
         [TextFieldName("阈值")]
-        public float Fact { get; set; }
+        public float Thresholds { get; set; }
+
+        /// <summary>
+        /// 阈值。
+        /// </summary>
+        [TextFieldName("最低阈值")]
+        public float ThresholdsOfLowest { get; set; }
+
+        [TextFieldName("分型组号")]
+        public int GroupNumber { get; set; }
 
         [TextFieldName("方药")]
         public string Yaowu { get; set; }
@@ -93,7 +107,7 @@ namespace CnMedicineServer.Models
                 {
                     if (null == _Yaowu)
                     {
-                        _Yaowu = EntityUtil.GetTuples(Yaowu);
+                        _Yaowu = EntityUtility.GetTuples(Yaowu);
                     }
                 }
                 return _Yaowu;
@@ -163,7 +177,7 @@ namespace CnMedicineServer.Models
                 {
                     if (null == _Numbers1)
                     {
-                        _Numbers1 = EntityUtil.GetArray(NumersString1).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => int.Parse(c)).ToList();
+                        _Numbers1 = EntityUtility.GetArray(NumersString1).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => int.Parse(c)).ToList();
                     }
                 }
                 return _Numbers1;
@@ -189,7 +203,7 @@ namespace CnMedicineServer.Models
                 {
                     if (null == _Numbers2)
                     {
-                        _Numbers2 = EntityUtil.GetArray(NumersString2).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => int.Parse(c)).ToList();
+                        _Numbers2 = EntityUtility.GetArray(NumersString2).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => int.Parse(c)).ToList();
                     }
                 }
                 return _Numbers2;
@@ -209,7 +223,7 @@ namespace CnMedicineServer.Models
                 lock (this)
                     if (null == _JingqiyinjingyaoList)
                     {
-                        _JingqiyinjingyaoList = EntityUtil.GetTuples(Jingqiyinjingyao).ToList();
+                        _JingqiyinjingyaoList = EntityUtility.GetTuples(Jingqiyinjingyao).ToList();
                     }
                 return _JingqiyinjingyaoList;
             }
@@ -235,7 +249,7 @@ namespace CnMedicineServer.Models
                 lock (this)
                     if (null == _DuizhengyaoList)
                     {
-                        _DuizhengyaoList = EntityUtil.GetTuples(Duizhengyao);
+                        _DuizhengyaoList = EntityUtility.GetTuples(Duizhengyao);
                     }
                 return _DuizhengyaoList;
             }
@@ -281,8 +295,8 @@ namespace CnMedicineServer.Models
     public class TongJingMedicineCorrection
     {
         /*
-         * 证型	症状	编号	阈值	加减药
-         * 气滞血瘀	痛经剧烈伴有恶心呕吐者	115	1	吴茱萸5、法半夏9、莪术15
+         * 症状编号	症状	阈值	加减药	类型号
+         * 10,1111。	痛经剧烈伴有恶心呕吐者	1	吴茱萸5、法半夏9、莪术15	1
          */
 
         static Lazy<List<TongJingMedicineCorrection>> _DefaultCollection = new Lazy<List<TongJingMedicineCorrection>>(() =>
@@ -329,9 +343,9 @@ namespace CnMedicineServer.Models
         public string ZhengZhuang { get; set; }
 
         /// <summary>
-        /// 症状。
+        /// 症状编号。
         /// </summary>
-        [TextFieldName("编号")]
+        [TextFieldName("症状编号")]
         public string NumbersString { get; set; }
 
         List<int> _Numbers;
@@ -346,7 +360,7 @@ namespace CnMedicineServer.Models
                 lock (this)
                     if (null == _Numbers)
                     {
-                        _Numbers = EntityUtil.GetArray(NumbersString).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => int.Parse(c)).ToList();
+                        _Numbers = EntityUtility.GetArray(NumbersString).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => int.Parse(c)).ToList();
                     }
                 return _Numbers;
             }
@@ -375,12 +389,17 @@ namespace CnMedicineServer.Models
                 lock (this)
                     if (null == _Drugs)
                     {
-                        _Drugs = EntityUtil.GetTuples(DrugsString);
+                        _Drugs = EntityUtility.GetTuples(DrugsString);
                     }
                 return _Drugs;
             }
         }
 
+        /// <summary>
+        /// 类型号。
+        /// </summary>
+        [TextFieldName("类型号")]
+        public int TypeNumber { get; set; }
     }
 
     /// <summary>
@@ -390,7 +409,8 @@ namespace CnMedicineServer.Models
     {
         /*
          * 归类编号	逻辑	阈值	说明
-         * 1001	813，814，815，816，817。	0.20 	睡眠
+         * 10001	3703,3704,3705,3706,3707。	0.20 	睡眠
+
          */
 
         /// <summary>
@@ -425,7 +445,7 @@ namespace CnMedicineServer.Models
         }
 
         /// <summary>
-        /// 归类编号。
+        /// 症状编号。
         /// </summary>
         [TextFieldName("归类编号")]
         public int Number { get; set; }
@@ -439,7 +459,7 @@ namespace CnMedicineServer.Models
         private List<int> _Numbers;
 
         /// <summary>
-        /// 编号的数组。
+        /// 逻辑的数组。
         /// </summary>
         public List<int> Numbers
         {
@@ -449,7 +469,7 @@ namespace CnMedicineServer.Models
                 {
                     if (null == _Numbers)
                     {
-                        _Numbers = EntityUtil.GetArray(NumbersString).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => int.Parse(c)).ToList();
+                        _Numbers = EntityUtility.GetArray(NumbersString).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => int.Parse(c)).ToList();
                     }
                 }
                 return _Numbers;
@@ -467,6 +487,13 @@ namespace CnMedicineServer.Models
         /// </summary>
         [TextFieldName("说明")]
         public string Description { get; set; }
+
+        /// <summary>
+        /// 类型号。
+        /// 1取最高量。2取最低量，其它处无此药则不添加
+        /// </summary>
+        [TextFieldName("类型号")]
+        public int TypeNumber { get; set; }
 
     }
 

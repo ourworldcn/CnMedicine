@@ -51,13 +51,33 @@ namespace HelpTest
             多重 = 1,
             选择 = 512,
         }
+
+        void PreTest()
+        {
+        }
+
+        void Test()
+        {
+            var _Seq1 = Enumerable.Range(0, 1000);
+            var _Seq2 = Enumerable.Range(0, 1000);
+            var t = _Seq1.Join(_Seq2, c => c, c => c, (c1, c2) => c1).ToArray();
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
-            string patt = @"(?:<Separator>[\p{Po}-[\*]])?(?<number>\d*\.?\d*)";
-            var ms = Regex.Matches("1*2,2,4，5", patt);
+            PreTest();
+            var st = Stopwatch.StartNew();
+            Test();
+            st.Stop();
+            MessageBox.Show(st.ElapsedMilliseconds.ToString());
+            var td1 = TypeDescriptor.GetConverter(typeof(int));
+            var ii = td1.ConvertFrom("55");
+           var i1= Convert.ChangeType("32", typeof(int));
+            string patt = @"[\s\p{Po}-[\*]]*?(?<name>[\d\s\*\.]+)";
+            var ms = Regex.Matches("3104,1101,1202*3,1301,1502,5202,4107*2,4415,1703。", patt);
             foreach (var item in ms.OfType<Match>())
             {
-                Debug.WriteLine(item.Groups["number"]);
+                Debug.WriteLine(item.Groups["name"]);
             }
             var f1 = decimal.Parse(".3");
             //var xx = (MyEnum)Convert.ChangeType("选择 , 多重", typeof(MyEnum));

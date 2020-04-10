@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="CnMedicineServer.Bll.CnMedicineExtends" Collapsed="true">
+    <Position X="5.75" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>BLL\CnMedicineAlgorithmBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CnMedicineServer.Bll.CnMedicineAnalysisDataBase" Collapsed="true">
+    <Position X="1.5" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>BLL\CnMedicineAlgorithmBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CnMedicineServer.Bll.GaoRongrongAnalysisDataBase" Collapsed="true">
+    <Position X="1.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>BLL\CnMedicineAlgorithmBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CnMedicineServer.Bll.CnMedicineAlgorithmBase" Collapsed="true">
+    <Position X="4" Y="1.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>BLL\CnMedicineAlgorithmBase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Microsoft YaHei UI" Size="9" />
+</ClassDiagram>

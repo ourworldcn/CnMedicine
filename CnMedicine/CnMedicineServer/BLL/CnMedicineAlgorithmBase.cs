@@ -2,6 +2,7 @@
 using OW.Data.Entity;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
 
@@ -124,7 +125,7 @@ namespace CnMedicineServer.Bll
             _Numbers = new HashSet<int>(_AnswerTemplates.Keys.Union(_QuestionTemplates.Keys));
         }
 
-        private object _SyncLocker = new object();
+        private readonly object _SyncLocker = new object();
 
         /// <summary>
         /// 获取同步使用的锁。
@@ -177,6 +178,11 @@ namespace CnMedicineServer.Bll
         }
 
         /// <summary>
+        /// 因某种原因加入的编号集合。
+        /// </summary>
+        protected List<int> AddingNumbers { get;  } = new List<int>();
+
+        /// <summary>
         /// 获取指定编号的类型号。
         /// </summary>
         /// <param name="number"></param>
@@ -209,6 +215,17 @@ namespace CnMedicineServer.Bll
             if (null == surveys.Template)   //若有必要则将强制填写模板类
                 surveys.Template = db.SurveysTemplates.Find(surveys.TemplateId);
             return GetResultCore(surveys, db);
+        }
+    }
+
+    /// <summary>
+    /// 常用算法帮助器类。
+    /// </summary>
+    public static class CnMedicineUtility
+    {
+        public static void get<TKey, TCode>(IEnumerable<Tuple<TKey, IEnumerable<TCode>, float>> dic, IEnumerable<TCode> codes)
+        {
+
         }
     }
 }

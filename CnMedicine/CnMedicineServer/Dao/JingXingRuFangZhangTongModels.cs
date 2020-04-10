@@ -1,35 +1,35 @@
-﻿using OW.Data.Entity;
+﻿
+using OW.Data.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
-using System.Threading;
 
 namespace CnMedicineServer.Models
 {
     /// <summary>
-    /// 经间期出血-分型表。
+    /// 经行乳房胀痛-分型表。
     /// </summary>
     [DataContract]
-    public class JingJianQiChuXueFenXing
+    public class JingXingRuFangZhangTongFenXing
     {
         /*
          * 分型组号	分型号	编号	阈值	最低阈值	方药
         10	101	"1602,1301,3104,5205,2202,3706,3703,3502,3113,4407,4416。"	0.65	0.3	陈皮20，柴胡18，川芎15，香附20，枳壳12，白芍12，炙甘草6，川楝子10，郁金10，木香20，酸枣仁10。
          * */
-        static Lazy<List<JingJianQiChuXueFenXing>> _DefaultCollection = new Lazy<List<JingJianQiChuXueFenXing>>(() =>
-         {
-             List<JingJianQiChuXueFenXing> result;
-             var path = System.Web.HttpContext.Current.Server.MapPath("~/content/经间期出血");
+        static Lazy<List<JingXingRuFangZhangTongFenXing>> _DefaultCollection = new Lazy<List<JingXingRuFangZhangTongFenXing>>(() =>
+        {
+            List<JingXingRuFangZhangTongFenXing> result;
+            var path = System.Web.HttpContext.Current.Server.MapPath("~/content/经行乳房胀痛");
 
-             using (var tdb = new TextFileContext(path) { IgnoreQuotes = true, })
-             {
-                 result = tdb.GetList<JingJianQiChuXueFenXing>("经间期出血-分型表.txt");
-             }
-             return result;
-         }, true);
+            using (var tdb = new TextFileContext(path) { IgnoreQuotes = true, })
+            {
+                result = tdb.GetList<JingXingRuFangZhangTongFenXing>("乳胀-辨证分型表.txt");
+            }
+            return result;
+        }, true);
 
-        public static List<JingJianQiChuXueFenXing> DefaultCollection
+        public static List<JingXingRuFangZhangTongFenXing> DefaultCollection
         {
             get
             {
@@ -40,7 +40,7 @@ namespace CnMedicineServer.Models
         /// <summary>
         /// 构造函数。
         /// </summary>
-        public JingJianQiChuXueFenXing()
+        public JingXingRuFangZhangTongFenXing()
         {
 
         }
@@ -48,7 +48,7 @@ namespace CnMedicineServer.Models
         /// <summary>
         /// 分型组号。
         /// </summary>
-        [TextFieldName("分型组号")]
+        [TextFieldName("分组号")]
         public int GroupNumber { get; set; }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace CnMedicineServer.Models
         /// <summary>
         /// 编号。
         /// </summary>
-        [TextFieldName("编号")]
+        [TextFieldName("症状编号")]
         public string NumbersString { get; set; }
 
         private Dictionary<int, float> _Numbers;
@@ -140,23 +140,23 @@ namespace CnMedicineServer.Models
     }
 
     /// <summary>
-    /// 经间期出血经络辩证表。
+    /// 经行乳房胀痛-经络辩证表。
     /// </summary>
-    public class JingJianQiChuXueJingLuoBianZheng
+    public class JingXingRuFangZhangTongJingLuoBianZheng
     {
         /*
-            病位	编号	分组	优先度	药物
-            少阳经	1510，1511。	1	11	柴胡15  小茴香12
+            病位	编号	阈值	分组号	优先度	药物
+            少阳	1103，1406，1206，5306。	0.25	20	11	柴胡15 茯苓15
          */
 
-        static Lazy<List<JingJianQiChuXueJingLuoBianZheng>> _DefaultCollection = new Lazy<List<JingJianQiChuXueJingLuoBianZheng>>(() =>
+        static Lazy<List<JingXingRuFangZhangTongJingLuoBianZheng>> _DefaultCollection = new Lazy<List<JingXingRuFangZhangTongJingLuoBianZheng>>(() =>
         {
-            List<JingJianQiChuXueJingLuoBianZheng> result;
-            var path = System.Web.HttpContext.Current.Server.MapPath("~/content/经间期出血");
+            List<JingXingRuFangZhangTongJingLuoBianZheng> result;
+            var path = System.Web.HttpContext.Current.Server.MapPath("~/content/经行乳房胀痛");
 
             using (var tdb = new TextFileContext(path) { IgnoreQuotes = true, })
             {
-                result = tdb.GetList<JingJianQiChuXueJingLuoBianZheng>("经间期出血-经络辩证表.txt");
+                result = tdb.GetList<JingXingRuFangZhangTongJingLuoBianZheng>("乳胀-经络辨证表.txt");
             }
             return result;
         }, true);
@@ -164,7 +164,7 @@ namespace CnMedicineServer.Models
         /// <summary>
         /// 默认的集合。
         /// </summary>
-        public static List<JingJianQiChuXueJingLuoBianZheng> DefaultCollection
+        public static List<JingXingRuFangZhangTongJingLuoBianZheng> DefaultCollection
         {
             get
             {
@@ -173,66 +173,40 @@ namespace CnMedicineServer.Models
         }
 
         /// <summary>
-        /// 分组。
+        /// 分组号。
         /// </summary>
-        [TextFieldName("分组")]
+        [TextFieldName("分组号")]
         public int GroupNumber { get; set; }
 
         /// <summary>
         /// 病位（六经）。
         /// </summary>
-        [TextFieldName("病位（六经）")]
+        [TextFieldName("病位")]
         public string BingWei { get; set; }
 
         /// <summary>
         /// 编号1。
         /// </summary>
-        [TextFieldName("编号1")]
-        public string NumersString1 { get; set; }
+        [TextFieldName("编号")]
+        public string NumersString { get; set; }
 
-        private List<int> _Numbers1;
+        private List<int> _Numbers;
 
         /// <summary>
         /// 编号的数组。
         /// </summary>
-        public List<int> Numbers1
+        public List<int> Numbers
         {
             get
             {
                 lock (this)
                 {
-                    if (null == _Numbers1)
+                    if (null == _Numbers)
                     {
-                        _Numbers1 = EntityUtility.GetArray(NumersString1).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => int.Parse(c)).ToList();
+                        _Numbers = EntityUtility.GetArray(NumersString).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => int.Parse(c)).ToList();
                     }
                 }
-                return _Numbers1;
-            }
-        }
-
-        /// <summary>
-        /// 编号2。
-        /// </summary>
-        [TextFieldName("编号2")]
-        public string NumersString2 { get; set; }
-
-        private List<int> _Numbers2;
-
-        /// <summary>
-        /// 编号的数组。
-        /// </summary>
-        public List<int> Numbers2
-        {
-            get
-            {
-                lock (this)
-                {
-                    if (null == _Numbers2)
-                    {
-                        _Numbers2 = EntityUtility.GetArray(NumersString2).Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => int.Parse(c)).ToList();
-                    }
-                }
-                return _Numbers2;
+                return _Numbers;
             }
         }
 
@@ -243,9 +217,9 @@ namespace CnMedicineServer.Models
         public int Priority { get; set; }
 
         /// <summary>
-        /// 对症药。
+        /// 药物。
         /// </summary>
-        [TextFieldName("对症药")]
+        [TextFieldName("药物")]
         public string DuiZhengCnDrugString { get; set; }
 
         List<Tuple<string, decimal>> _CnDrugs;
@@ -265,26 +239,34 @@ namespace CnMedicineServer.Models
                 return _CnDrugs;
             }
         }
+
+        /// <summary>
+        /// 阈值。
+        /// </summary>
+        [TextFieldName("阈值")]
+        [DataMember]
+        public float Thresholds { get; set; }
+
     }
 
     /// <summary>
-    /// 经间期出血症状归类表。
+    /// 经行乳房胀痛-症状归类表。
     /// </summary>
-    public class JingJianQiChuXueZhengZhuangGuiLei
+    public class JingXingRuFangZhangTongZhengZhuangGuiLei
     {
         /*
          * 归类编号	逻辑	阈值	说明
          * 1001	813，814，815，816，817。	0.20 	睡眠
          */
 
-        static Lazy<List<JingJianQiChuXueZhengZhuangGuiLei>> _DefaultCollection = new Lazy<List<JingJianQiChuXueZhengZhuangGuiLei>>(() =>
+        static Lazy<List<JingXingRuFangZhangTongZhengZhuangGuiLei>> _DefaultCollection = new Lazy<List<JingXingRuFangZhangTongZhengZhuangGuiLei>>(() =>
         {
-            List<JingJianQiChuXueZhengZhuangGuiLei> result;
-            var path = System.Web.HttpContext.Current.Server.MapPath("~/content/经间期出血");
+            List<JingXingRuFangZhangTongZhengZhuangGuiLei> result;
+            var path = System.Web.HttpContext.Current.Server.MapPath("~/content/经行乳房胀痛");
 
             using (var tdb = new TextFileContext(path) { IgnoreQuotes = true, })
             {
-                result = tdb.GetList<JingJianQiChuXueZhengZhuangGuiLei>("症状归类表.txt");
+                result = tdb.GetList<JingXingRuFangZhangTongZhengZhuangGuiLei>("乳胀-症状归类表.txt");
             }
             return result;
         }, true);
@@ -292,7 +274,7 @@ namespace CnMedicineServer.Models
         /// <summary>
         /// 默认的集合。
         /// </summary>
-        public static List<JingJianQiChuXueZhengZhuangGuiLei> DefaultCollection
+        public static List<JingXingRuFangZhangTongZhengZhuangGuiLei> DefaultCollection
         {
             get
             {
@@ -347,18 +329,18 @@ namespace CnMedicineServer.Models
     }
 
     /// <summary>
-    /// 经间期出血-分型加减表。
+    /// 经行乳房胀痛-分型加减表。
     /// </summary>
-    public class JingJianQiChuXueFenXingCorrection
+    public class JingXingRuFangZhangTongCorrection
     {
-        static Lazy<List<JingJianQiChuXueFenXingCorrection>> _DefaultCollection = new Lazy<List<JingJianQiChuXueFenXingCorrection>>(() =>
+        static Lazy<List<JingXingRuFangZhangTongCorrection>> _DefaultCollection = new Lazy<List<JingXingRuFangZhangTongCorrection>>(() =>
         {
-            List<JingJianQiChuXueFenXingCorrection> result;
-            var path = System.Web.HttpContext.Current.Server.MapPath("~/content/经间期出血");
+            List<JingXingRuFangZhangTongCorrection> result;
+            var path = System.Web.HttpContext.Current.Server.MapPath("~/content/经行乳房胀痛");
 
             using (var tdb = new TextFileContext(path) { IgnoreQuotes = true, })
             {
-                result = tdb.GetList<JingJianQiChuXueFenXingCorrection>("经间期出血-分型加减表.txt");
+                result = tdb.GetList<JingXingRuFangZhangTongCorrection>("乳胀-加减表.txt");
             }
             return result;
         }, true);
@@ -366,7 +348,7 @@ namespace CnMedicineServer.Models
         /// <summary>
         /// 经间期出血-分型加减表默认集合。
         /// </summary>
-        public static List<JingJianQiChuXueFenXingCorrection> DefaultCollection
+        public static List<JingXingRuFangZhangTongCorrection> DefaultCollection
         {
             get
             {
@@ -460,4 +442,5 @@ namespace CnMedicineServer.Models
         [TextFieldName("类型号")]
         public int TypeNumber { get; set; }
     }
+
 }

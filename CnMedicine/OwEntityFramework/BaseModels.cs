@@ -21,9 +21,9 @@ namespace OW.Data.Entity
     public class EntityUtility
     {
         /// <summary>
-        /// 捕获模式字符串。如：:生地黄-9,玄参9，天冬15;麦冬(醋熏）15;丹参（后下）9。当归9、党参9茯神15炒酸枣仁15远志6五味子6龙骨（醅)-30
+        /// 捕获模式字符串。如：生地黄-9,玄参9g，天冬15;麦冬(醋熏）15;丹参（后下）9。当归9、党参9茯神15炒酸枣仁15远志6五味子6龙骨（醅)-30
         /// </summary>
-        public const string KvPatternString = @"[\p{Po}\s]*(?<name>.*?)[\s]*(?<value>[\+\-]?\d+)";
+        public const string KvPatternString = @"[\p{Po}\s]*(?<name>.*?)[\s]*(?<value>[\+\-]?\d+)[g]?";
 
         /// <summary>
         /// 分开数组的正则字符串。
@@ -63,6 +63,8 @@ namespace OW.Data.Entity
         /// <returns></returns>
         public static List<string> GetArray(string guts)
         {
+            if (string.IsNullOrEmpty(guts)) //若是空字符串
+                return new List<string>();
             List<string> result = new List<string>();
             var matches = Regex.Matches(guts, ListPatternString);
 
@@ -74,6 +76,36 @@ namespace OW.Data.Entity
                 string name = group.Value;
                 result.Add(name);
             }
+            return result;
+        }
+
+        public const string ArrayWithPowerPatternString = @"[\s\p{Po}-[\*]]*?(?<name>[\d\s\*\.]+)";
+
+        /// <summary>
+        /// 获取类似以下字符串中数组，"3104,1101,1202*3,1301,1502,5202,4107*2,4415,1703。"
+        /// </summary>
+        /// <returns></returns>
+        public static List<Tuple<int, float>> GetArrayWithPower(string inputs)
+        {
+            List<Tuple<int, float>> result = new List<Tuple<int, float>>();
+            var matches = Regex.Matches(inputs, ArrayWithPowerPatternString);
+            foreach (Match match in matches)
+            {
+                var group = match.Groups["name"];
+                if (!group.Success)
+                    continue;
+                string name = group.Value.Trim();
+                var arys = name.Split('*');
+                if (2 < arys.Length)    //若数据非法
+                    continue;
+                if (!int.TryParse(arys[0], out int i))
+                    continue;
+                float power = 1;
+                if (2 != arys.Length || !float.TryParse(arys[1], out power))
+                    power = 1;
+                result.Add(Tuple.Create(i, power));
+            }
+
             return result;
         }
 

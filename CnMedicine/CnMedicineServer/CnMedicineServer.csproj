@@ -216,6 +216,7 @@
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
     <Compile Include="BLL\CnMedicineAlgorithmBase.cs" />
     <Compile Include="BLL\Insomnia.cs" />
+    <Compile Include="BLL\JingXingRuFangZhangTong.cs" />
     <Compile Include="BLL\Rhinitis.cs" />
     <Compile Include="BLL\TongJing.cs" />
     <Compile Include="Controllers\AccountController.cs" />
@@ -227,6 +228,7 @@
     <Compile Include="Dao\InsomniaModels.cs" />
     <Compile Include="BLL\JingJianQiChuXue.cs" />
     <Compile Include="Dao\JingJianQiChuXueModels.cs" />
+    <Compile Include="Dao\JingXingRuFangZhangTongModels.cs" />
     <Compile Include="Dao\ResourceModels.cs" />
     <Compile Include="Dao\RhinitisModels.cs" />
     <Compile Include="Dao\SpecialCasesModels.cs" />
@@ -264,8 +266,14 @@
     <Content Include="Content\痛经\痛经病-症状表.txt" />
     <Content Include="Content\痛经\痛经病-经络辩证表.txt" />
     <Content Include="Content\痛经\痛经病-药物加减表.txt" />
+    <Content Include="Content\经行乳房胀痛\乳胀-加减表.txt" />
+    <Content Include="Content\经行乳房胀痛\乳胀-症状归类表.txt" />
+    <Content Include="Content\经行乳房胀痛\乳胀-症状表.txt" />
+    <Content Include="Content\经行乳房胀痛\乳胀-经络辨证表.txt" />
+    <Content Include="Content\经行乳房胀痛\乳胀-辨证分型表.txt" />
     <Content Include="Content\经间期出血\症状归类表.txt" />
     <Content Include="Content\经间期出血\症状表.txt" />
+    <Content Include="Content\经间期出血\经间期出血-分型加减表.txt" />
     <Content Include="Content\经间期出血\经间期出血-分型表.txt" />
     <Content Include="Content\经间期出血\经间期出血-经络辩证表.txt" />
     <Content Include="Content\药物加味-失眠.txt" />
@@ -302,6 +310,7 @@
     <Content Include="Areas\HelpPage\Views\Help\DisplayTemplates\ApiGroup.cshtml" />
     <Content Include="Areas\HelpPage\Views\Help\Api.cshtml" />
     <Content Include="libman.json" />
+    <Content Include="BLL\ChineseMedicine.cd" />
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />

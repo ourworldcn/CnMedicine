@@ -1,25 +1,20 @@
-﻿using CnMedicineServer.Models;
+﻿
+using CnMedicineServer.Models;
 using OW;
 using OW.Data.Entity;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Migrations;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 
 namespace CnMedicineServer.Bll
 {
-    /// <summary>
-    /// 提取症状表的数据类。
-    /// </summary>
-    public class JingJianQiChuXueSigns
+    public class JingXingRuFangZhangTongSigns
     {
         /*
-         编号	问题	    症状	类型号	问题类型	说明
-         101    疼痛时间	月经期	B	    选择	类型号：A参与计算且阈值为0.7；B不参与计算；C参与计算且没有阈值
+            编号	问题	症状	问题类型
+            1101	经前乳房胀痛	经前乳房胀痛	"选择,多重"
         */
 
         /// <summary>
@@ -41,12 +36,6 @@ namespace CnMedicineServer.Bll
         public string ZhengZhuang { get; set; }
 
         /// <summary>
-        /// 类型号。
-        /// </summary>
-        [TextFieldName("类型号")]
-        public string TypeString { get; set; }
-
-        /// <summary>
         /// 问题类型。
         /// </summary>
         [TextFieldName("问题类型")]
@@ -57,11 +46,12 @@ namespace CnMedicineServer.Bll
         /// </summary>
         [TextFieldName("说明")]
         public string Description { get; set; }
+
     }
 
-    public class JingJianQiChuXueAnalysisData : GaoRongrongAnalysisDataBase
+    public class JingXingRuFangZhangTongAnalysisData : GaoRongrongAnalysisDataBase
     {
-        public JingJianQiChuXueAnalysisData()
+        public JingXingRuFangZhangTongAnalysisData()
         {
 
         }
@@ -79,33 +69,32 @@ namespace CnMedicineServer.Bll
                     if (null == _AllNumbers)
                     {
                         var adding = Numbers.Union(AddingNumbers).ToArray();
-
-                        var coll = from tmp in JingJianQiChuXueZhengZhuangGuiLei.DefaultCollection
+                        var coll = from tmp in JingXingRuFangZhangTongZhengZhuangGuiLei.DefaultCollection
                                    let fac = (float)tmp.Numbers.Intersect(adding).Count() / tmp.Numbers.Count
                                    where fac >= tmp.Thresholds
                                    select tmp.Number;
-                        _AllNumbers = Numbers.Union(coll).ToList();
+                        _AllNumbers = adding.Union(coll).ToList();
                     }
                 return _AllNumbers;
             }
         }
 
-        private Dictionary<JingJianQiChuXueFenXing, float> _Fenxing2Matching;
+        private Dictionary<JingXingRuFangZhangTongFenXing, float> _Fenxing2Matching;
 
         /// <summary>
         /// 键是分型数据，值匹配度。
         /// </summary>
-        public Dictionary<JingJianQiChuXueFenXing, float> Fenxing2Matching
+        public Dictionary<JingXingRuFangZhangTongFenXing, float> Fenxing2Matching
         {
             get
             {
                 lock (SyncLocker)
                     if (null == _Fenxing2Matching)
                     {
-                        Dictionary<JingJianQiChuXueFenXing, float> result = new Dictionary<JingJianQiChuXueFenXing, float>();
-                        foreach (var item in JingJianQiChuXueFenXing.DefaultCollection)
+                        Dictionary<JingXingRuFangZhangTongFenXing, float> result = new Dictionary<JingXingRuFangZhangTongFenXing, float>();
+                        foreach (var item in JingXingRuFangZhangTongFenXing.DefaultCollection)
                         {
-                            var count = item.Numbers.Join(AllNumbers, c => c.Key, c => c, (kv, num) => kv).GroupBy(c => c.Key).Sum(c => c.Sum(subc => subc.Value)); //AllNumbers中重複出現將有額外含義
+                            var count = item.Numbers.Join(AllNumbers, c => c.Key, c => c, (kv, num) => kv).GroupBy(c => c.Key, (key, kvs) => kvs.Sum(c => c.Value)).Sum(); //AllNumbers中重複出現將有額外含義
                             result.Add(item, count / item.Numbers.Count);
                         }
                         _Fenxing2Matching = result;
@@ -114,12 +103,12 @@ namespace CnMedicineServer.Bll
             }
         }
 
-        List<JingJianQiChuXueFenXing> _FenXing;
+        List<JingXingRuFangZhangTongFenXing> _FenXing;
 
         /// <summary>
         /// 获取分型。
         /// </summary>
-        public List<JingJianQiChuXueFenXing> FenXing
+        public List<JingXingRuFangZhangTongFenXing> FenXing
         {
             get
             {
@@ -140,7 +129,7 @@ namespace CnMedicineServer.Bll
                         var fenxing = coll.FirstOrDefault(c => c.Matching >= c.Key.Thresholds); //获取最佳匹配
                         if (null == fenxing)   //如果没有找到
                             fenxing = coll.FirstOrDefault(c => c.Matching >= c.Key.ThresholdsOfLowest); //降格处理
-                        _FenXing = new List<JingJianQiChuXueFenXing>();
+                        _FenXing = new List<JingXingRuFangZhangTongFenXing>();
                         if (null != fenxing)
                             _FenXing.Add(fenxing.Key);
                         AddingNumbers.AddRange(_FenXing.Select(c => c.Number));    //辩证的编号加入编号集合
@@ -162,13 +151,13 @@ namespace CnMedicineServer.Bll
                 lock (SyncLocker)
                     if (null == _FenXingCnMedicine)
                     {
-                        var adds = (from tmp in JingJianQiChuXueFenXingCorrection.DefaultCollection
+                        var adds = (from tmp in JingXingRuFangZhangTongCorrection.DefaultCollection
                                     where tmp.TypeNumber == 1 && (float)AllNumbers.Intersect(tmp.Numbers).Count() / tmp.Numbers.Count >= tmp.Thresholds
                                     select tmp).SelectMany(c => c.CnDrugOfAdd); //增加项
-                        var igns = (from tmp in JingJianQiChuXueFenXingCorrection.DefaultCollection
+                        var igns = (from tmp in JingXingRuFangZhangTongCorrection.DefaultCollection
                                     where tmp.TypeNumber == 1 && (float)AllNumbers.Intersect(tmp.Numbers).Count() / tmp.Numbers.Count >= tmp.Thresholds
                                     select tmp).SelectMany(c => c.CnDrugOfSub);   //忽略的项
-                        var subc = (from tmp in JingJianQiChuXueFenXingCorrection.DefaultCollection
+                        var subc = (from tmp in JingXingRuFangZhangTongCorrection.DefaultCollection
                                     where tmp.TypeNumber == 2 && (float)AllNumbers.Intersect(tmp.Numbers).Count() / tmp.Numbers.Count >= tmp.Thresholds
                                     select tmp).SelectMany(c => c.CnDrugOfAdd);   //减少项
                         var coll1 = FenXing.SelectMany(c => c.CnDrugs).Union(adds) //增加项
@@ -180,27 +169,25 @@ namespace CnMedicineServer.Bll
             }
         }
 
-        List<Tuple<string, decimal>> _JingLuoCnMedicine;
+        List<JingXingRuFangZhangTongJingLuoBianZheng> _JingLuo;
 
         /// <summary>
-        /// 获取经络辩证的药物。
+        /// 获取经络辩证。
         /// </summary>
-        public List<Tuple<string, decimal>> JingLuoCnMedicine
+        public List<JingXingRuFangZhangTongJingLuoBianZheng> JingLuo
         {
             get
             {
                 lock (SyncLocker)
-                    if (null == _JingLuoCnMedicine)
+                    if (null == _JingLuo)
                     {
-                        var list = JingJianQiChuXueJingLuoBianZheng.DefaultCollection.Where(c => c.Numbers1.Intersect(AllNumbers).Count() > 0).ToList();    //包含的行
-                        if (list.Count == 0)   //若没有备选行
-                            list = JingJianQiChuXueJingLuoBianZheng.DefaultCollection.ToList(); //选取所有行
-                        var result = list.Tops(c => (float)c.Numbers2.Intersect(AllNumbers).Count() / c.Numbers2.Count, (c1, c2) => c1).OrderBy(c => c.Priority).FirstOrDefault();
-                        _JingLuoCnMedicine = new List<Tuple<string, decimal>>();
-                        if (null != result)
-                            _JingLuoCnMedicine.AddRange(result.CnDrugs);
+                        var coll = JingXingRuFangZhangTongJingLuoBianZheng.DefaultCollection
+                            .Select(c => new { Value = c, Matching = (float)c.Numbers.Intersect(AllNumbers).Count() / c.Numbers.Count })   //计算中间数值
+                            .Where(c => c.Matching >= c.Value.Thresholds)    //匹配项
+                            .GroupBy(c => c.Value.GroupNumber, (key, seq) => seq.OrderByDescending(c => c.Matching).ThenByDescending(c => c.Value.Priority).First().Value);  //每组中匹配度最高的项
+                        _JingLuo = coll.ToList();
                     }
-                return _JingLuoCnMedicine;
+                return _JingLuo;
             }
         }
 
@@ -213,7 +200,7 @@ namespace CnMedicineServer.Bll
         {
             get
             {
-                var coll = FenXingCnMedicine.Union(JingLuoCnMedicine).GroupBy(c => c.Item1);
+                var coll = FenXingCnMedicine.Union(JingLuo.SelectMany(c => c.CnDrugs)).GroupBy(c => c.Item1);
                 var tmp = coll.Select(c => Tuple.Create(c.Key, c.Max(subc => subc.Item2))).ToList();
                 return tmp.RandomSequence();
             }
@@ -222,15 +209,15 @@ namespace CnMedicineServer.Bll
     }
 
     /// <summary>
-    /// 经间期出血。
+    /// 经行乳房胀痛。
     /// </summary>
     [OwAdditional(SurveysTemplateIdName, SurveysTemplateIdString)]
-    public class JingJianQiChuXueAlgorithm : CnMedicineAlgorithmBase
+    public class JingXingRuFangZhangTongAlgorithm : CnMedicineAlgorithmBase
     {
         /// <summary>
         /// 此算法处理的调查模板Id。
         /// </summary>
-        public const string SurveysTemplateIdString = "0C199BBC-009C-46EC-B3AC-CB4796F7CB2A";
+        public const string SurveysTemplateIdString = "D4817276-153D-4C90-AB33-23F70C20CC33";
 
         /// <summary>
         /// 初始化函数。
@@ -242,70 +229,62 @@ namespace CnMedicineServer.Bll
             var tmp = context.Set<SurveysTemplate>().Find(Guid.Parse(SurveysTemplateIdString));
             if (null != tmp)
                 return;
-            var path = System.Web.HttpContext.Current.Server.MapPath("~/content/经间期出血");
-            List<JingJianQiChuXueSigns> signs;
+            var path = System.Web.HttpContext.Current.Server.MapPath("~/content/经行乳房胀痛");
+            List<JingXingRuFangZhangTongSigns> signs;
             using (var tdb = new TextFileContext(path) { IgnoreQuotes = true, })
             {
-                signs = tdb.GetList<JingJianQiChuXueSigns>("症状表.txt");
+                signs = tdb.GetList<JingXingRuFangZhangTongSigns>("乳胀-症状表.txt");
             }
             //初始化调查模板项
             var surveysTemplate = new SurveysTemplate()
             {
                 Id = Guid.Parse(SurveysTemplateIdString),
-                Name = "经间期出血",
+                Name = "经行乳房胀痛",
                 UserState = "支持复诊0",
                 Questions = new List<SurveysQuestionTemplate>(),
-                Description = "经间期出血指：凡在两次月经之间，排卵期时，有周期性出血者，称为经间期出血。",
+                //Description = "经间期出血指：凡在两次月经之间，排卵期时，有周期性出血者，称为经间期出血。",
             };
             context.Set<SurveysTemplate>().AddOrUpdate(surveysTemplate);
             //添加专病项
             InsomniaCasesItem caseItem = new InsomniaCasesItem()
             {
-                Name = "经间期出血",
+                Name = "经行乳房胀痛",
             };
             context.Set<InsomniaCasesItem>().AddOrUpdate(caseItem);
             //添加问题项
             var coll = signs.GroupBy(c => c.Question).Select(c =>
+            {
+                SurveysQuestionTemplate sqt = new SurveysQuestionTemplate()
                 {
-                    SurveysQuestionTemplate sqt = new SurveysQuestionTemplate()
+                    Kind = c.First().QuestionsKind,
+                    OrderNum = c.First().Number,
+                    QuestionTitle = c.Key,
+                    UserState = "",
+                };
+                sqt.Answers = c.Select(subc =>
+                {
+                    SurveysAnswerTemplate sat = new SurveysAnswerTemplate()
                     {
-                        Kind = c.First().QuestionsKind,
-                        OrderNum = c.First().Number,
-                        QuestionTitle = c.Key,
-                        UserState = "",
+                        AnswerTitle = subc.ZhengZhuang,
+                        OrderNum = subc.Number,
+                        UserState = $"编号{subc.Number}",
                     };
-                    sqt.Answers = c.Select(subc =>
-                    {
-                        SurveysAnswerTemplate sat = new SurveysAnswerTemplate()
-                        {
-                            AnswerTitle = subc.ZhengZhuang,
-                            OrderNum = subc.Number,
-                            UserState = $"编号{subc.Number}，类型号{subc.TypeString}1",
-                        };
-                        return sat;
-                    }).ToList();
-                    return sqt;
-                });
+                    return sat;
+                }).ToList();
+                return sqt;
+            });
             surveysTemplate.Questions.AddRange(coll);
             context.SaveChanges();
-        }
-
-        /// <summary>
-        /// 构造函数。
-        /// </summary>
-        public JingJianQiChuXueAlgorithm()
-        {
-
         }
 
         protected override SurveysConclusion GetResultCore(Surveys surveys, ApplicationDbContext db)
         {
             var result = new SurveysConclusion() { SurveysId = surveys.Id };
             result.GeneratedIdIfEmpty();
-            var sy = db.SurveysTemplates.Where(c => c.Name == "经间期出血").FirstOrDefault();
+            var sy = db.SurveysTemplates.Where(c => c.Name == "经行乳房胀痛").FirstOrDefault();
             if (null == sy)
                 return null;
-            var data = new JingJianQiChuXueAnalysisData();
+            var data = new JingXingRuFangZhangTongAnalysisData();
             data.SetAnswers(surveys.SurveysAnswers, db);
             result.Conclusion = string.Join(",", data.Results.Select(c => $"{c.Item1}{c.Item2}"));
             if (string.IsNullOrWhiteSpace(result.Conclusion))

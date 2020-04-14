@@ -74,7 +74,7 @@ namespace CnMedicineServer.Migrations
 
             //  You can use the DbSet<T>.AddOrUpdate() helper extension method 
             //  to avoid creating duplicate seed data.
-            
+
             Init(context);
         }
 
@@ -105,6 +105,7 @@ namespace CnMedicineServer.Migrations
                     {
                         Id = Guid.Parse("A7458E0D-2BB9-4F99-9913-0B978F6E0CD2"),
                         Name = "±ÇÑ×",
+                        UserState= "Ö§³Ö¸´Õï0",
                     }
                 },
                 {

@@ -105,6 +105,7 @@ namespace CnMedicineServer.Migrations
                     {
                         Id = Guid.Parse("A7458E0D-2BB9-4F99-9913-0B978F6E0CD2"),
                         Name = "鼻炎",
+                        UserState= "支持复诊0",
                     }
                 },
                 {
@@ -242,7 +243,7 @@ namespace CnMedicineServer.Migrations
             }
             //生成调查问卷数据。
             task?.Wait();
-            var questionTemplates = st.Questions;
+            var questionTemplates = st.Questions ?? new List<SurveysQuestionTemplate>(); 
             var rows = dt.Rows.OfType<DataRow>().Where(c => !c.HasErrors);
             //编号,问题,症候,类型,脏腑评分,证型评分,UserState
             var items = rows.Select(c => new { 编号 = Convert.ToString(c["编号"]), 问题 = c["问题"].ToString(), 症候 = c["症候"].ToString(), 类型 = (QuestionsKind)Convert.ToInt32(c["类型"]), 脏腑评分 = c["脏腑评分"].ToString(), 证型评分 = c["证型评分"].ToString() });

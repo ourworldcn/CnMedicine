@@ -219,7 +219,6 @@ namespace CnMedicineServer.Migrations
             });
             var coll = context.Set<RhinitisCasesItem>();
             //添加专病项
-            //评分表，药物输出表，病机药物输出
             var sci = coll.Where(c => c.Name == "鼻炎").Include(c => c.Conversions).Include(c => c.CnDrugCorrections)
                 .Include(c => c.CnDrugConversion2s).FirstOrDefault();
             if (null == sci)    //若没有
@@ -232,7 +231,7 @@ namespace CnMedicineServer.Migrations
             }
             //添加调查问卷项
             task?.Wait();
-            var st = context.Set<SurveysTemplate>().Where(c => c.Name == "鼻炎").FirstOrDefault();
+            var st = context.Set<SurveysTemplate>().Include(c => c.Questions).Where(c => c.Name == "鼻炎").FirstOrDefault();
             if (null == st)
             {
                 st = context.Set<SurveysTemplate>().Create();
@@ -243,7 +242,7 @@ namespace CnMedicineServer.Migrations
             }
             //生成调查问卷数据。
             task?.Wait();
-            var questionTemplates = st.Questions ?? new List<SurveysQuestionTemplate>(); 
+            var questionTemplates = st.Questions ?? new List<SurveysQuestionTemplate>();
             var rows = dt.Rows.OfType<DataRow>().Where(c => !c.HasErrors);
             //编号,问题,症候,类型,脏腑评分,证型评分,UserState
             var items = rows.Select(c => new { 编号 = Convert.ToString(c["编号"]), 问题 = c["问题"].ToString(), 症候 = c["症候"].ToString(), 类型 = (QuestionsKind)Convert.ToInt32(c["类型"]), 脏腑评分 = c["脏腑评分"].ToString(), 证型评分 = c["证型评分"].ToString() });
@@ -271,7 +270,7 @@ namespace CnMedicineServer.Migrations
                         };
                     }));
                 return result;
-            });
+            }).ToList();
             questionTemplates.AddRange(addQuestions);
 
             context.SaveChanges();

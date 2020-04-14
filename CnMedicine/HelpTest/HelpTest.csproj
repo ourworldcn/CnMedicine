@@ -107,5 +107,11 @@
   <ItemGroup>
     <Service Include="{3259AA49-8AA1-44D3-9025-A0B520596A8C}" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\OwEntityFramework\OwEntityFramework.csproj">
+      <Project>{02e02b13-eea4-4c08-ae0c-a4c66dc64233}</Project>
+      <Name>OwEntityFramework</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

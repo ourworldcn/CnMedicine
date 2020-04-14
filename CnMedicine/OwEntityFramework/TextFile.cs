@@ -15,7 +15,7 @@ namespace OW.Data.Entity
     /// <summary>
     /// 指定属性，字段从文本文件映射。
     /// </summary>
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, Inherited = false, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
     public sealed class TextFieldNameAttribute : Attribute
     {
         // See the attribute guidelines at 
@@ -45,7 +45,7 @@ namespace OW.Data.Entity
     /// </summary>
     public class TextFileContext : IDisposable
     {
-        public static void Fill(System.IO.TextReader reader, DataTable dataTable, string fieldSeparator, bool hasHeader = false)
+        public static void Fill(TextReader reader, DataTable dataTable, string fieldSeparator, bool hasHeader = false)
         {
             Debug.Assert(hasHeader);    //暂时不管无标头
             var separator = new string[] { fieldSeparator };

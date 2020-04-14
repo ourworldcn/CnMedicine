@@ -180,7 +180,7 @@ namespace CnMedicineServer.Bll
         /// <summary>
         /// 因某种原因加入的编号集合。
         /// </summary>
-        protected List<int> AddingNumbers { get;  } = new List<int>();
+        protected List<int> AddingNumbers { get; } = new List<int>();
 
         /// <summary>
         /// 获取指定编号的类型号。
@@ -227,5 +227,73 @@ namespace CnMedicineServer.Bll
         {
 
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="signs"></param>
+        /// <param name="template">问卷模板，传递空则自动生成新模板，否则更新原有数据。</param>
+        public static void GetSurveysTemplateFromCnMedicineSigns(CnMedicineSignsBase signs, ref SurveysTemplate template)
+        {
+            if (null == template)
+                template = new SurveysTemplate();
+        }
     }
+
+    /// <summary>
+    /// 调查问卷的基础类。
+    /// </summary>
+    public class CnMedicineSignsBase
+    {
+        /*
+            编号	问题	症状	问题类型    额外信息    说明
+            1101	经前乳房胀痛	经前乳房胀痛	"选择,多重" 复诊0 文字说明
+        */
+
+        /// <summary>
+        /// 构造函数。
+        /// </summary>
+        public CnMedicineSignsBase()
+        {
+
+        }
+
+        /// <summary>
+        /// 编号。
+        /// </summary>
+        [TextFieldName("编号")]
+        public virtual int Number { get; set; }
+
+        /// <summary>
+        /// 问题。
+        /// </summary>
+        [TextFieldName("问题")]
+        public virtual string Question { get; set; }
+
+        /// <summary>
+        /// 症状。
+        /// </summary>
+        [TextFieldName("症状")]
+        public virtual string ZhengZhuang { get; set; }
+
+        /// <summary>
+        /// 问题类型。
+        /// </summary>
+        [TextFieldName("问题类型")]
+        public virtual QuestionsKind QuestionsKind { get; set; }
+
+        /// <summary>
+        /// 额外信息。
+        /// </summary>
+        [TextFieldName("额外信息")]
+        public virtual string UserState { get; set; }
+
+        /// <summary>
+        /// 说明。
+        /// </summary>
+        [TextFieldName("说明")]
+        public virtual string Description { get; set; }
+
+    }
+
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OW;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -65,6 +66,8 @@ namespace HelpTest
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            TypeDescriptor.AddAttributes(GetType(), new OwAdditionalAttribute("name", "value"));
+            var pi = TypeDescriptor.GetProperties(GetType())["Name"];
             PreTest();
             var st = Stopwatch.StartNew();
             Test();
@@ -72,7 +75,7 @@ namespace HelpTest
             MessageBox.Show(st.ElapsedMilliseconds.ToString());
             var td1 = TypeDescriptor.GetConverter(typeof(int));
             var ii = td1.ConvertFrom("55");
-           var i1= Convert.ChangeType("32", typeof(int));
+            var i1 = Convert.ChangeType("32", typeof(int));
             string patt = @"[\s\p{Po}-[\*]]*?(?<name>[\d\s\*\.]+)";
             var ms = Regex.Matches("3104,1101,1202*3,1301,1502,5202,4107*2,4415,1703。", patt);
             foreach (var item in ms.OfType<Match>())

@@ -1,4 +1,5 @@
-﻿using OW;
+﻿using CnMedicineServer.Models;
+using OW;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,8 +11,10 @@ using System.Data.OleDb;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -66,6 +69,23 @@ namespace HelpTest
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            CnPrescription prescription = new CnPrescription()
+            {
+                Name = "方剂1",
+            };
+            prescription.Drugs.Add(new CnDrug()
+            {
+                Name = "大枣",
+                Number = 15,
+                Unit = "克",
+            });
+            prescription.Drugs.Add(new CnDrug()
+            {
+                Name = "细辛",
+                Number = 3,
+                Unit = "克",
+            });
+
             TypeDescriptor.AddAttributes(GetType(), new OwAdditionalAttribute("name", "value"));
             var pi = TypeDescriptor.GetProperties(GetType())["Name"];
             PreTest();

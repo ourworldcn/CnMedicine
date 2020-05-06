@@ -205,7 +205,7 @@ namespace HelpTest
 					this.OnOrderNumChanging(value);
 					this.SendPropertyChanging();
 					this._OrderNum = value;
-					this.SendPropertyChanged("OrderNum");
+					this.SendPropertyChanged("OrderNumber");
 					this.OnOrderNumChanged();
 				}
 			}

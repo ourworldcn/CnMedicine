@@ -76,7 +76,7 @@ namespace CnMedicineServer.Bll
         //    _Answers = answers.ToList();
         //    var tIds = _Answers.Select(c => c.TemplateId).ToArray();
         //    _Templates = dbContext.Set<SurveysAnswerTemplate>().Where(c => tIds.Contains(c.Id)).ToDictionary(c => c.Id);
-        //    _Numbers = new HashSet<int>(_Templates.Values.Select(c => c.OrderNum));
+        //    _Numbers = new HashSet<int>(_Templates.Values.Select(c => c.OrderNumber));
         //}
 
         private List<int> _AllNumbers;
@@ -230,7 +230,7 @@ namespace CnMedicineServer.Bll
     /// 痛经诊断算法类。
     /// </summary>
     [OwAdditional(SurveysTemplateIdName, SurveysTemplateIdString)]
-    public class TongJingAlgorithm : CnMedicineAlgorithmBase
+    public class TongJingAlgorithm : GaoRonrongAlgorithmBase
     {
         /// <summary>
         /// 此算法处理的调查模板Id。
@@ -260,6 +260,7 @@ namespace CnMedicineServer.Bll
                 Name = "痛经",
                 UserState = "支持复诊0",
                 Questions = new List<SurveysQuestionTemplate>(),
+                Description= "痛经：凡在经期或经行前后,出现周期性小腹疼痛,或痛引腰骶,甚至剧痛晕厥者,称为“痛经”,亦称“经行腹痛”。",
             };
             context.Set<SurveysTemplate>().AddOrUpdate(surveysTemplate);
             //添加专病项
@@ -303,6 +304,8 @@ namespace CnMedicineServer.Bll
             data.SetAnswers(surveys.SurveysAnswers, db);
             var result = new SurveysConclusion() { SurveysId = surveys.Id };
             result.Conclusion = string.Join(",", data.Results.Select(c => $"{c.Item1}{c.Item2}"));
+            SetCnPrescriptiones(result, data.Results);
+
             if (string.IsNullOrWhiteSpace(result.Conclusion))
                 result.Conclusion = "(您输入的症状暂无对应药方，请联系医生。)";
             return result;

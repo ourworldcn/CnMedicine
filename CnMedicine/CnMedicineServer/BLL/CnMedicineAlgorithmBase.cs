@@ -1,11 +1,17 @@
 ﻿using CnMedicineServer.Models;
+using OW;
 using OW.Data.Entity;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data.Entity;
+using System.Data.Entity.Migrations;
+using System.IO;
 using System.Linq;
+using System.Threading;
 
+#pragma warning disable CS3021 // 由于程序集没有 CLSCompliant 特性，因此类型或成员不需要 CLSCompliant 特性
 namespace CnMedicineServer.Bll
 {
 
@@ -88,21 +94,21 @@ namespace CnMedicineServer.Bll
         List<SurveysAnswer> _Answers;
 
         /// <summary>
+        /// 答案集合。
+        /// </summary>
+        public List<SurveysAnswer> Answers { get => _Answers; protected set => _Answers = value; }
+
+        /// <summary>
         /// 键是编号，值是对应的模板。
         /// </summary>
         Dictionary<int, SurveysAnswerTemplate> _AnswerTemplates;
-
-        Dictionary<int, SurveysQuestionTemplate> _QuestionTemplates;
-
-        /// <summary>
-        /// 答案集合。
-        /// </summary>
-        public List<SurveysAnswer> Answers { get => _Answers; set => _Answers = value; }
 
         /// <summary>
         /// 键是编号，值是对应的模板。
         /// </summary>
         public Dictionary<int, SurveysAnswerTemplate> AnswerTemplates { get => _AnswerTemplates; set => _AnswerTemplates = value; }
+
+        Dictionary<int, SurveysQuestionTemplate> _QuestionTemplates;
 
         /// <summary>
         /// 键是编号，值是对应的模板。
@@ -125,6 +131,21 @@ namespace CnMedicineServer.Bll
             _Numbers = new HashSet<int>(_AnswerTemplates.Keys.Union(_QuestionTemplates.Keys));
         }
 
+        /// <summary>
+        /// 设置症状的集合。
+        /// </summary>
+        /// <param name="answers"></param>
+        /// <param name="dbContext"></param>
+        public virtual void SetSigns(IEnumerable<SurveysAnswer> answers, DbContext dbContext)
+        {
+            _Answers = answers.ToList();
+            var tIds = _Answers.Select(c => c.TemplateId).ToArray();
+            _AnswerTemplates = dbContext.Set<SurveysAnswerTemplate>().Where(c => tIds.Contains(c.Id)).ToDictionary(c => c.OrderNum);
+            _QuestionTemplates = dbContext.Set<SurveysQuestionTemplate>().Where(c => tIds.Contains(c.Id)).ToDictionary(c => c.OrderNum);
+            _Numbers = new HashSet<int>(_AnswerTemplates.Keys.Concat(_QuestionTemplates.Keys));
+        }
+
+
         private readonly object _SyncLocker = new object();
 
         /// <summary>
@@ -133,80 +154,213 @@ namespace CnMedicineServer.Bll
         public object SyncLocker { get => _SyncLocker; }
     }
 
-    public class GaoRongrongAnalysisDataBase : CnMedicineAnalysisDataBase
-    {
-        public GaoRongrongAnalysisDataBase()
-        {
-
-        }
-
-        public override void SetAnswers(IEnumerable<SurveysAnswer> answers, DbContext dbContext)
-        {
-            base.SetAnswers(answers, dbContext);
-
-        }
-
-        Dictionary<int, string> _TypeNumeber;
-
-        /// <summary>
-        /// 获取编号的类型码。
-        /// </summary>
-        public Dictionary<int, string> TypeNumeber
-        {
-            get
-            {
-                lock (SyncLocker)
-                    if (null == _TypeNumeber)
-                    {
-                        _TypeNumeber = new Dictionary<int, string>();
-                        foreach (var item in Numbers)
-                        {
-                            if (AnswerTemplates.TryGetValue(item, out SurveysAnswerTemplate surveysAnswer))
-                            {
-                                var tuples = EntityUtility.GetTuples(surveysAnswer.UserState);
-                                if (tuples.Any(c => "类型号A" == c.Item1 && 1 == c.Item2))
-                                    _TypeNumeber.Add(item, "A");
-                                else if (tuples.Any(c => "类型号B" == c.Item1 && 1 == c.Item2))
-                                    _TypeNumeber.Add(item, "B");
-                                else if (tuples.Any(c => "类型号C" == c.Item1 && 1 == c.Item2))
-                                    _TypeNumeber.Add(item, "C");
-                            }
-                        }
-                    }
-                return _TypeNumeber;
-            }
-        }
-
-        /// <summary>
-        /// 因某种原因加入的编号集合。
-        /// </summary>
-        protected List<int> AddingNumbers { get; } = new List<int>();
-
-        /// <summary>
-        /// 获取指定编号的类型号。
-        /// </summary>
-        /// <param name="number"></param>
-        /// <returns>A参与计算且阈值为0.7；B不参与计算；C参与计算且没有阈值,未指定则返回<see cref="string.Empty"/>。</returns>
-        public string GetTypeNumber(int number)
-        {
-            if (TypeNumeber.TryGetValue(number, out string typeNumber))
-                return typeNumber.ToUpper();
-            else
-                return string.Empty;
-        }
-    }
-
+    /// <summary>
+    /// 所有智能问诊的算法基类。
+    /// </summary>
     public abstract class CnMedicineAlgorithmBase
     {
         /// <summary>
-        /// 此字符串标志<see cref="OW.OwAdditionalAttribute"/>中Name属性内容。表示其Value中内容是该类处理的调查模板Id。
+        /// 此字符串标志<see cref="OwAdditionalAttribute"/>中Name属性内容。表示其Value中内容是该类处理的调查模板Id。
         /// </summary>
         public const string SurveysTemplateIdName = "782281B8-D74B-42FA-9F32-9E8EB7B5049B";
 
         /// <summary>
-        /// 此字符串标志<see cref="OW.OwAdditionalAttribute"/>中Name属性内容。Value的内容将被忽略，此批注放在静态初始化的函数上，函数必须签名类似static void xxx(DbContext context)。
+        /// 此字符串标志<see cref="OwAdditionalAttribute"/>中Name属性内容。Value的内容将被忽略，此批注放在静态初始化的函数上，函数必须签名类似static void xxx(DbContext context)。
         /// </summary>
         public const string InitializationFuncName = "175EFEDB-7561-44E5-A053-86FC03C39255";
+
+        /// <summary>
+        /// 方剂存储在ThingProperties中的Name属性内容。
+        /// </summary>
+        public const string CnPrescriptionesName = "FD293367-9E05-4466-AA13-B9B529A2DE89";
+
+        /// <summary>
+        /// 初始化症状数据。
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="signsFileName">症状数据的文件名，如"~/content/xxx/xxx1,txt"</param>
+        /// <param name="algorithmType"></param>
+        public static void InitializeCore(DbContext context, string signsFileName, Type algorithmType)
+        {
+            var idAttr = algorithmType.GetCustomAttributes(true).OfType<OwAdditionalAttribute>().FirstOrDefault(c => c.Name == SurveysTemplateIdName);
+            var SurveysTemplateIdString = idAttr.Value;
+            var survId = Guid.Parse(SurveysTemplateIdString);
+            var tmp = context.Set<SurveysTemplate>().Find(survId);
+
+            if (null != tmp)
+                return;
+
+            var fullPath = System.Web.HttpContext.Current.Server.MapPath(signsFileName);    //本机全路径
+            var path = Path.GetDirectoryName(fullPath); //路径名
+            List<CnMedicineSignsBase> signs;
+            using (var tdb = new TextFileContext(path) { IgnoreQuotes = true, })
+            {
+                var fileName = Path.GetFileName(fullPath);
+                signs = tdb.GetList<CnMedicineSignsBase>(fileName);
+            }
+            //初始化调查模板项
+            var surveysTemplate = new SurveysTemplate()
+            {
+                Id = survId,
+                //Name = "经行乳房胀痛",
+                //UserState = "支持复诊0",
+                Questions = new List<SurveysQuestionTemplate>(),
+                //Description = "经行乳房痛：每值经前或经期乳房作胀,甚至胀满疼痛,或乳头痒痛者,称“经行乳房痛”。包含乳腺增生、乳腺纤维瘤等乳腺疾病的伴发症状。",
+            };
+            context.Set<SurveysTemplate>().AddOrUpdate(surveysTemplate);
+            //添加专病项
+            //InsomniaCasesItem caseItem = new InsomniaCasesItem()
+            //{
+            //    Name = "经行乳房胀痛",
+            //};
+            //context.Set<InsomniaCasesItem>().AddOrUpdate(caseItem);
+            //添加问题项
+            var coll = signs.GroupBy(c => c.Question).Select(c =>
+            {
+                SurveysQuestionTemplate sqt = new SurveysQuestionTemplate()
+                {
+                    Kind = c.First().QuestionsKind,
+                    OrderNum = c.First().Number,
+                    QuestionTitle = c.Key,
+                    UserState = "",
+                };
+                sqt.Answers = c.Select(subc =>
+                {
+                    SurveysAnswerTemplate sat = new SurveysAnswerTemplate()
+                    {
+                        AnswerTitle = subc.ZhengZhuang,
+                        OrderNum = subc.Number,
+                        UserState = $"编号{subc.Number}",
+                    };
+                    return sat;
+                }).ToList();
+                return sqt;
+            });
+            surveysTemplate.Questions.AddRange(coll);
+        }
+
+        public CnMedicineAlgorithmBase()
+        {
+            AdditionalNumbers.CollectionChanged += AdditionalNumbers_CollectionChanged;
+        }
+
+        private void AdditionalNumbers_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            switch (e.Action)
+            {
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Add:
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Remove:
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Replace:
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Move:
+                case System.Collections.Specialized.NotifyCollectionChangedAction.Reset:
+                    _AllNumbers = null;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private readonly object _SyncLocker = new object();
+
+        /// <summary>
+        /// 获取同步使用的锁。
+        /// </summary>
+        public object SyncLocker => _SyncLocker;
+
+        private List<SurveysAnswer> _Answers;
+        private Dictionary<int, SurveysAnswerTemplate> _AnswerTemplates;
+        private Dictionary<int, SurveysQuestionTemplate> _QuestionTemplates;
+
+        private HashSet<int> _Numbers;
+
+        /// <summary>
+        /// 调查问卷中所有编号的集合。
+        /// </summary>
+        public HashSet<int> Numbers { get => _Numbers; set => _Numbers = value; }
+
+        /// <summary>
+        /// 因某种原因加入的编号集合。
+        /// 修改该集合后，下次调用<see cref="AllNumbers"/>时将自动添加到其中。
+        /// </summary>
+        protected ObservableCollection<int> AdditionalNumbers { get; } = new ObservableCollection<int>();
+
+        Tuple<string, Type> _GeneratedNumebersInfo;
+
+        /// <summary>
+        /// 获取或设置<see cref="GeneratedNumebers"/>属性的默认获取方法。
+        /// </summary>
+        /// <exception cref="InvalidOperationException">只能设置一次。</exception>
+        public Tuple<string, Type> GeneratedNumebersInfo
+        {
+            get => _GeneratedNumebersInfo;
+            set
+            {
+                if (null != _GeneratedNumebersInfo)
+                    throw new InvalidOperationException($"{nameof(GeneratedNumebersInfo)}属性只能设置一次。");
+                _GeneratedNumebersInfo = value;
+            }
+        }
+
+        /// <summary>
+        /// 获取派生编号的规则集合。
+        /// </summary>
+        public virtual IEnumerable<GeneratedNumeber> GeneratedNumebers
+        {
+            get => CnMedicineLogicBase.GetOrCreateAsync<GeneratedNumeber>(_GeneratedNumebersInfo.Item1).Result;
+        }
+
+        Tuple<string, Type> _CnDrugCorrectionsInfo;
+
+        /// <summary>
+        /// 获取或设置<see cref="CnDrugCorrectionsInfo"/>属性的默认获取方法。
+        /// </summary>
+        /// <exception cref="InvalidOperationException">只能设置一次。</exception>
+        public Tuple<string, Type> CnDrugCorrectionsInfo
+        {
+            get => _CnDrugCorrectionsInfo;
+            set
+            {
+                if (null != _GeneratedNumebersInfo)
+                    throw new InvalidOperationException($"{nameof(CnDrugCorrectionsInfo)}属性只能设置一次。");
+                _CnDrugCorrectionsInfo = value;
+            }
+        }
+
+        /// <summary>
+        /// 获取药物加减的规则集合。
+        /// </summary>
+        public virtual IEnumerable<CnDrugCorrectionBase> CnDrugCorrections
+        {
+            get => CnMedicineLogicBase.GetOrCreateAsync<CnDrugCorrectionBase>(CnDrugCorrectionsInfo.Item1).Result;
+        }
+
+        /// <summary>
+        /// 最终药物结果列表。
+        /// </summary>
+        public abstract List<Tuple<string, decimal>> Results { get; }
+
+        private List<int> _AllNumbers;
+
+        /// <summary>
+        /// 添加了追加编号后的再添加派生编号的所有编号。
+        /// </summary>
+        public List<int> AllNumbers
+        {
+            get
+            {
+                lock (SyncLocker)
+                    if (null == _AllNumbers)
+                    {
+                        var adding = Numbers.Union(AdditionalNumbers).ToArray();
+                        var coll = from tmp in GeneratedNumebers
+                                   let fac = (float)tmp.Numbers.Intersect(adding).Count() / tmp.Numbers.Count
+                                   where fac >= tmp.Thresholds
+                                   select tmp.Number;
+                        _AllNumbers = adding.Union(coll).ToList();
+                    }
+                return _AllNumbers;
+            }
+        }
 
         protected abstract SurveysConclusion GetResultCore(Surveys surveys, ApplicationDbContext db);
 
@@ -215,6 +369,47 @@ namespace CnMedicineServer.Bll
             if (null == surveys.Template)   //若有必要则将强制填写模板类
                 surveys.Template = db.SurveysTemplates.Find(surveys.TemplateId);
             return GetResultCore(surveys, db);
+        }
+
+        /// <summary>
+        /// 设置症状的集合。
+        /// </summary>
+        /// <param name="answers"></param>
+        /// <param name="dbContext"></param>
+        public virtual void SetSigns(IEnumerable<SurveysAnswer> answers, DbContext dbContext)
+        {
+            _Answers = answers.ToList();
+            var tIds = _Answers.Select(c => c.TemplateId).ToArray();
+            _AnswerTemplates = dbContext.Set<SurveysAnswerTemplate>().Where(c => tIds.Contains(c.Id)).ToDictionary(c => c.OrderNum);
+            _QuestionTemplates = dbContext.Set<SurveysQuestionTemplate>().Where(c => tIds.Contains(c.Id)).ToDictionary(c => c.OrderNum);
+            _Numbers = new HashSet<int>(_AnswerTemplates.Keys.Concat(_QuestionTemplates.Keys));
+        }
+
+        /// <summary>
+        /// 设置方剂内容。
+        /// </summary>
+        /// <param name="conclusion">调查结论对象。</param>
+        /// <param name="prescriptiones"></param>
+        [CLSCompliant(false)]
+        public void SetCnPrescriptiones(SurveysConclusion conclusion, params IEnumerable<Tuple<string, decimal>>[] prescriptiones)
+        {
+            var coll = new List<CnPrescription>();
+            int index = 1;
+            foreach (var item in prescriptiones)
+            {
+                var drugs = item.Select(c => new CnDrug()
+                {
+                    Name = c.Item1,
+                    Number = c.Item2,
+                    Unit = "g",
+                });
+                var pres = new CnPrescription() { Name = $"方剂{index++}" };
+                pres.Drugs.AddRange(drugs);
+                coll.Add(pres);
+            }
+            ThingPropertyItem tpi = new ThingPropertyItem() { Name = CnPrescriptionesName };
+            tpi.Value = EntityUtility.ToJson(coll);
+            conclusion.ThingPropertyItems.Add(tpi);
         }
     }
 
@@ -297,3 +492,4 @@ namespace CnMedicineServer.Bll
     }
 
 }
+#pragma warning restore CS3021 // 由于程序集没有 CLSCompliant 特性，因此类型或成员不需要 CLSCompliant 特性

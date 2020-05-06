@@ -99,6 +99,29 @@ namespace CnMedicineServer.Controllers
             return _LazyHttpClient.Value;
         }
 
+        /// <summary>
+        /// 測試用發送到平臺數據的地址。
+        /// </summary>
+        const string _TestSaveConclusionPath = "/web/interface/questionnaire/save";
+        static Lazy<HttpClient> _LazyTestHttpClient = new Lazy<HttpClient>(() =>
+        {
+            var result = new HttpClient();
+            result.BaseAddress = new Uri("http://39.104.89.104:7080");
+            result.DefaultRequestHeaders.Accept.Clear();
+            result.DefaultRequestHeaders.Accept.Add(
+                new MediaTypeWithQualityHeaderValue("application/json"));
+            return result;
+        }, true);
+
+        /// <summary>
+        /// 获取發送到測試平臺WebApi的对象。
+        /// </summary>
+        /// <returns></returns>
+        public static HttpClient GetTestHttpClient()
+        {
+            return _LazyTestHttpClient.Value;
+        }
+
         [MethodImpl(MethodImplOptions.Synchronized)]
         static SpecialCasesInsomniaController()
         {
@@ -119,6 +142,7 @@ namespace CnMedicineServer.Controllers
             var result = Paging(coll, model);
             foreach (var item in result.Content.Datas)
             {
+
                 item.LoadThingPropertyItemsAsync(DbContext).Wait();
             }
 
@@ -153,11 +177,12 @@ namespace CnMedicineServer.Controllers
         [ResponseType(typeof(Surveys))]
         public IHttpActionResult GetLastSurveys([FromUri]string userId)
         {
+            var db = DbContext;
             try
             {
                 DateTime dt = DateTime.UtcNow.Date;
                 var last = SubMonth(dt, 3);
-                var coll = DbContext.Set<Surveys>().Where(c => c.UserId == userId && c.CreateUtc >= last).OrderByDescending(c => c.CreateUtc).Take(1).ToArray();
+                var coll = db.Set<Surveys>().Where(c => c.UserId == userId && c.CreateUtc >= last).OrderByDescending(c => c.CreateUtc).Take(1).ToArray();
                 var result = coll.FirstOrDefault();
                 if (null != result && !string.IsNullOrWhiteSpace(result.UserState))
                 {
@@ -166,6 +191,7 @@ namespace CnMedicineServer.Controllers
                     if (flag > 0)
                         result = null;
                 }
+                result?.LoadThingPropertyItemsAsync(db);
                 return Ok(result);
             }
             catch (Exception err)
@@ -184,7 +210,7 @@ namespace CnMedicineServer.Controllers
         [ResponseType(typeof(Surveys))]
         public IHttpActionResult GetLastSurveysFromId([FromUri] Guid id)
         {
-            Surveys result=null;
+            Surveys result = null;
             var db = DbContext;
             var current = db.Surveys.Find(id);
             if (null == current)
@@ -196,6 +222,7 @@ namespace CnMedicineServer.Controllers
                 return Ok(result);
             if ((current.CreateUtc - result.CreateUtc) > TimeSpan.FromDays(90))   //若超时
                 return Ok<Surveys>(null);
+            result.LoadThingPropertyItemsAsync(db);
             return Ok(result);
         }
 
@@ -280,6 +307,7 @@ namespace CnMedicineServer.Controllers
             }
             if (string.IsNullOrWhiteSpace(model.UserId))
                 return BadRequest("UserId不可为空。");
+            //var collx = ThingEntityBase.LoadThingPropertyItemsAsync(DbContext, DbContext.Surveys.Where(c=>c.Id!=Guid.Empty)).Result;
             try
             {
                 model.GeneratedIdIfEmpty();
@@ -295,9 +323,9 @@ namespace CnMedicineServer.Controllers
                     model.UserState = "复诊1";
                 else
                     model.UserState = "复诊0";
-                model = DbContext.Surveys.Add(model);
+                DbContext.Surveys.AddOrUpdate(model);
+                model.SaveThingPropertyItemsAsync(DbContext).Wait();
 
-                //DbContext.SaveChanges();
                 var strName = DbContext.SurveysTemplates.Find(model.TemplateId)?.Name;
                 CnMedicineAlgorithmBase algs;
                 SurveysConclusion result = null;
@@ -338,14 +366,22 @@ namespace CnMedicineServer.Controllers
                 try
                 {
                     var client = GetHttpClient();
+
                     var guts = new SaveConclusioModel(model, result, DbContext);
+                    result.SaveThingPropertyItemsAsync(DbContext).Wait();
                     var response = client.PostAsJsonAsync(_SaveConclusionPath, guts).Result;
                     response.EnsureSuccessStatusCode();
+
+                    //向測試平臺發送數據
+                    var testClient = GetHttpClient();
+                    GetTestHttpClient()?.PostAsJsonAsync(_TestSaveConclusionPath, guts);
                 }
                 catch (Exception err)
                 {
                     //TO DO
                 }
+                DbContext.SaveChanges();
+
                 return Ok(result);
             }
             catch (Exception err)
@@ -414,6 +450,11 @@ namespace CnMedicineServer.Controllers
         public IHttpActionResult SetSurveysWithNumbers(List<int> model, Guid templateId)
         {
             Surveys answers = new Surveys() { TemplateId = templateId, UserId = "BySetSurveysWithNumbers" };
+            answers.ThingPropertyItems.Add(new ThingPropertyItem()
+            {
+                Name = "PreId",
+                Value = Guid.NewGuid().ToString("D"),
+            });
             var db = DbContext;
             var template = db.SurveysTemplates.Find(templateId);
             var answerTemplates = template.Questions.SelectMany(c => c.Answers).ToArray();

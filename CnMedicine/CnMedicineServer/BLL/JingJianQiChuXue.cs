@@ -225,7 +225,7 @@ namespace CnMedicineServer.Bll
     /// 经间期出血。
     /// </summary>
     [OwAdditional(SurveysTemplateIdName, SurveysTemplateIdString)]
-    public class JingJianQiChuXueAlgorithm : CnMedicineAlgorithmBase
+    public class JingJianQiChuXueAlgorithm : GaoRonrongAlgorithmBase
     {
         /// <summary>
         /// 此算法处理的调查模板Id。
@@ -308,6 +308,8 @@ namespace CnMedicineServer.Bll
             var data = new JingJianQiChuXueAnalysisData();
             data.SetAnswers(surveys.SurveysAnswers, db);
             result.Conclusion = string.Join(",", data.Results.Select(c => $"{c.Item1}{c.Item2}"));
+            SetCnPrescriptiones(result, data.Results);
+
             if (string.IsNullOrWhiteSpace(result.Conclusion))
                 result.Conclusion = "(您输入的症状暂无对应药方，请联系医生。)";
             return result;

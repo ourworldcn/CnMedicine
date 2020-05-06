@@ -212,7 +212,7 @@ namespace CnMedicineServer.Bll
     /// 经行乳房胀痛。
     /// </summary>
     [OwAdditional(SurveysTemplateIdName, SurveysTemplateIdString)]
-    public class JingXingRuFangZhangTongAlgorithm : CnMedicineAlgorithmBase
+    public class JingXingRuFangZhangTongAlgorithm : GaoRonrongAlgorithmBase
     {
         /// <summary>
         /// 此算法处理的调查模板Id。
@@ -242,7 +242,7 @@ namespace CnMedicineServer.Bll
                 Name = "经行乳房胀痛",
                 UserState = "支持复诊0",
                 Questions = new List<SurveysQuestionTemplate>(),
-                //Description = "经间期出血指：凡在两次月经之间，排卵期时，有周期性出血者，称为经间期出血。",
+                Description = "经行乳房痛：每值经前或经期乳房作胀,甚至胀满疼痛,或乳头痒痛者,称“经行乳房痛”。包含乳腺增生、乳腺纤维瘤等乳腺疾病的伴发症状。",
             };
             context.Set<SurveysTemplate>().AddOrUpdate(surveysTemplate);
             //添加专病项
@@ -287,6 +287,8 @@ namespace CnMedicineServer.Bll
             var data = new JingXingRuFangZhangTongAnalysisData();
             data.SetAnswers(surveys.SurveysAnswers, db);
             result.Conclusion = string.Join(",", data.Results.Select(c => $"{c.Item1}{c.Item2}"));
+            SetCnPrescriptiones(result, data.Results);
+
             if (string.IsNullOrWhiteSpace(result.Conclusion))
                 result.Conclusion = "(您输入的症状暂无对应药方，请联系医生。)";
             return result;

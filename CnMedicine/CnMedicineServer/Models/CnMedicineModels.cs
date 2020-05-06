@@ -1,4 +1,5 @@
-﻿using OW.Data.Entity;
+﻿using CnMedicineServer.Bll;
+using OW.Data.Entity;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -31,6 +32,12 @@ namespace CnMedicineServer.Models
 
         }
 
+        /// <summary>
+        /// 構造函數。
+        /// </summary>
+        /// <param name="surveys"></param>
+        /// <param name="conclusion"></param>
+        /// <param name="db"></param>
         public SaveConclusioModel(Surveys surveys, SurveysConclusion conclusion, DbContext db)
         {
             Conclusion = conclusion;
@@ -52,6 +59,14 @@ namespace CnMedicineServer.Models
             {
                 Sex = surveys.SurveysAnswers.FirstOrDefault(c => c.TemplateId == question.Id)?.Guts;
             }
+            //写入方剂Id
+            var idTp = surveys.ThingPropertyItems.FirstOrDefault(c => c.Name == "prescriptionId");
+            PrescriptionId = idTp?.Value;
+            //写入方剂数据
+
+            idTp = conclusion.ThingPropertyItems.FirstOrDefault(c => c.Name == CnMedicineAlgorithmBase.CnPrescriptionesName);
+            if (null != idTp)
+                Prescriptiones = EntityUtility.FromJson<List<CnPrescription>>(idTp.Value);
         }
 
         [DataMember(IsRequired = true, Name = "name")]
@@ -80,11 +95,18 @@ namespace CnMedicineServer.Models
         /// </summary>
         [DataMember(IsRequired = true)]
         public Guid SurveysTemplateId { get; set; }
+
+        /// <summary>
+        /// 处方ID,从前端传回。
+        /// </summary>
+        [DataMember]
+        public string PrescriptionId { get; set; }
+
+        /// <summary>
+        /// 多个方剂的Json字符串。
+        /// </summary>
+        [DataMember]
+        public List<CnPrescription> Prescriptiones { get; set; }
     }
 
-    [DataContract]
-    public class ListSummaryItemViewModel
-    {
-
-    }
 }

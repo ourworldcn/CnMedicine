@@ -7,14 +7,19 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Data.Entity.Migrations;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+
+#pragma warning disable CS3021 // 由于程序集没有 CLSCompliant 特性，因此类型或成员不需要 CLSCompliant 特性
 
 namespace OW.Data.Entity
 {
@@ -138,6 +143,95 @@ namespace OW.Data.Entity
             }
         }
 
+        /// <summary>
+        /// 將對象轉化爲Json格式字符串。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static string ToJson<T>(T obj)
+        {
+            DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(T), new DataContractJsonSerializerSettings()
+            {
+                DateTimeFormat = new DateTimeFormat("s"),
+            });
+            using (var ms = new MemoryStream())
+            {
+                using (var writer = JsonReaderWriterFactory.CreateJsonWriter(ms, Encoding.UTF8, false, true))
+                {
+                    ser.WriteObject(writer, obj);
+                }
+                ms.Position = 0;
+                using (StreamReader sr = new StreamReader(ms))
+                    return sr.ReadToEnd();
+            }
+
+        }
+
+        /// <summary>
+        /// 從Json格式字符串獲取對象。
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="jsonString"></param>
+        /// <returns></returns>
+        public static T FromJson<T>(string jsonString)
+        {
+            T result;
+            DataContractJsonSerializer ser = new DataContractJsonSerializer(typeof(T), new DataContractJsonSerializerSettings()
+            {
+                DateTimeFormat = new DateTimeFormat("s"),
+            });
+            using (var ms = new MemoryStream())
+            {
+                using (StreamWriter sw = new StreamWriter(ms))
+                    sw.Write(jsonString);
+                var buffer = ms.ToArray();
+                using (var reader = JsonReaderWriterFactory.CreateJsonReader(buffer, 0, buffer.Length, Encoding.UTF8, new System.Xml.XmlDictionaryReaderQuotas() { }, null))
+                {
+                    result = (T)ser.ReadObject(reader);
+                }
+            }
+            return result;
+        }
+    }
+
+    /// <summary>
+    /// <see cref="EntityWithGuid.Load"/>事件的参数。
+    /// </summary>
+    public class EntityLoadEventArgs : EventArgs
+    {
+        public EntityLoadEventArgs()
+        {
+
+        }
+
+        public EntityLoadEventArgs(DbContext context)
+        {
+            DbContext = context;
+        }
+
+        /// <summary>
+        /// 获取或设置数据上下文。实体对象用此上下文调入内存。
+        /// </summary>
+        public DbContext DbContext { get; set; }
+    }
+
+    public class EntitySavingEventArgs : EventArgs
+    {
+        public EntitySavingEventArgs()
+        {
+
+        }
+
+        public EntitySavingEventArgs(DbContext context)
+        {
+            DbContext = context;
+        }
+
+        /// <summary>
+        /// 获取或设置数据上下文。实体对象用此上下文调入内存。
+        /// </summary>
+        public DbContext DbContext { get; set; }
     }
 
     /// <summary>
@@ -203,6 +297,55 @@ namespace OW.Data.Entity
             Id = Guid.NewGuid();
             return true;
         }
+
+        /// <summary>
+        /// 引发 EntityLoad 事件。应用代码应该在将数据读入内存形成对象后尽快调用一次该方法以保证数据的完整调入。
+        /// </summary>
+        public void InvokeOnEntityLoad(EntityLoadEventArgs e)
+        {
+            OnEntityLoad(e);
+        }
+
+        /// <summary>
+        /// 引发 EntitySaving 事件。应用代码应该在写入数据库之前调用该方法以保证数据完整写入。
+        /// </summary>
+        /// <param name="e"></param>
+        public void InvokeOnEntitySaving(EntitySavingEventArgs e)
+        {
+            OnEntitySaving(e);
+        }
+
+        /// <summary>
+        /// 实体对象刚刚调入内存时发生。
+        /// </summary>
+        public event EventHandler<EntityLoadEventArgs> EntityLoad;
+
+        /// <summary>
+        /// 引发<see cref="EntityLoad"/>事件。
+        /// 允许派生类对事件进行处理而不必附加委托。 重写此方法是用于处理在派生类中的事件的首选的技术。
+        /// 在派生类中重写 此方法 时，一定要调用基类的 此方法 方法，以便已注册的委托对事件进行接收。
+        /// </summary>
+        /// <param name="e"></param>
+        protected virtual void OnEntityLoad(EntityLoadEventArgs e)
+        {
+            EntityLoad?.Invoke(this, e);
+        }
+
+        /// <summary>
+        /// 实体对象即将保存到数据库时发生。
+        /// </summary>
+        public event EventHandler<EntitySavingEventArgs> EntitySaving;
+
+        /// <summary>
+        /// 引发<see cref="EntitySaving"/>事件。
+        /// 允许派生类对事件进行处理而不必附加委托。 重写此方法是用于处理在派生类中的事件的首选的技术。
+        /// 在派生类中重写 此方法 时，一定要调用基类的 此方法 方法，以便已注册的委托对事件进行接收。
+        /// </summary>
+        /// <param name="e"></param>
+        protected virtual void OnEntitySaving(EntitySavingEventArgs e)
+        {
+            EntitySaving?.Invoke(this, e);
+        }
     }
 
     /// <summary>
@@ -212,6 +355,102 @@ namespace OW.Data.Entity
     [Description("标识事物的实体基类。封装一些共有属性。")]
     public class ThingEntityBase : EntityWithGuid
     {
+        /// <summary>
+        /// 异步加载一组 <see cref="ThingPropertyItem"/> 对象到指定的 <see cref="ThingEntityBase"/> 对象中。
+        /// 這個函數會讀取數據庫用於加載數據。
+        /// </summary>
+        /// <param name="context">使用的数据上线文。</param>
+        /// <param name="collection">要加载子项数据的 <see cref="ThingEntityBase"/> 对象集合。其中 Id属性为全零的对象将被忽略。</param>
+        /// <returns></returns>
+        public static Task<IEnumerable<ThingPropertyItem>> LoadThingPropertyItemsAsync(DbContext context, IEnumerable<ThingEntityBase> collection)
+        {
+            return Task.Run(() =>
+            {
+                IEnumerable<ThingPropertyItem> result;
+                List<ThingPropertyItem> propertyItems;
+                if (typeof(IDbAsyncEnumerable).IsAssignableFrom(collection.GetType())) //若可能是數據庫查詢
+                {
+                    result = context.Set<ThingPropertyItem>().Where(c => collection.Any(d => d.Id != Guid.Empty && d.Id == c.ThingEntityId));
+                    try
+                    {
+                        propertyItems = result.ToList();
+                    }
+                    catch (Exception)   //若無法獲取
+                    {
+                        var ids = collection.Select(c => c.Id).ToArray();
+                        result = context.Set<ThingPropertyItem>().Where(c => ids.Contains(c.ThingEntityId));
+                        propertyItems = result.ToList();
+                    }
+                }
+                else
+                {
+                    var ids = collection.Select(c => c.Id).ToArray();
+                    result = context.Set<ThingPropertyItem>().Where(c => ids.Contains(c.ThingEntityId));
+                    propertyItems = result.ToList();
+                }
+
+                var coll = propertyItems.GroupBy(c => c.ThingEntityId) //按实体Id分组
+                    .Join(collection, c => c.Key, c => c.Id, (outer, inner) => new { outer, inner });
+                foreach (var item in coll)
+                {
+                    item.inner.MergeThingPropertyItems(item.outer);
+                }
+                return propertyItems.Cast<ThingPropertyItem>();
+            });
+        }
+
+        /// <summary>
+        /// 异步加载一组 <see cref="ThingPropertyItem"/> 对象到指定的 <see cref="ThingEntityBase"/> 对象中。
+        /// </summary>
+        /// <param name="context">使用的数据上线文。</param>
+        /// <param name="collection">要加载子项数据的 <see cref="ThingEntityBase"/> 对象集合。其中 Id属性为全零的对象将被忽略。</param>
+        /// <returns></returns>
+        [CLSCompliant(false)]
+        public static Task<IEnumerable<ThingPropertyItem>> LoadThingPropertyItemsAsync(DbContext context, params ThingEntityBase[] collection)
+        {
+            return LoadThingPropertyItemsAsync(context, collection.Cast<ThingEntityBase>());
+        }
+
+        /// <summary>
+        /// 將指定的實體對象中擴展屬性對象合并到數據上下文中。
+        /// 這個函數不會調用上下文的保存方法。但是這個函數會發生訪問數據庫的操作。
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="collection"></param>
+        /// <returns>返回保存的數據對象。</returns>
+        public static Task<IEnumerable<ThingPropertyItem>> SaveThingPropertyItemsAsync(DbContext context, IEnumerable<ThingEntityBase> collection)
+        {
+            return Task.Run(() =>
+            {
+                foreach (var entity in collection)
+                {
+                    foreach (var item in entity.ThingPropertyItems)
+                    {
+                        if (Guid.Empty == item.ThingEntityId)
+                            item.ThingEntityId = entity.Id;
+                        if (Guid.Empty == item.Id)
+                            item.Id = Guid.NewGuid();
+                    }
+                }
+                var coll = collection.SelectMany(c => c.ThingPropertyItems).ToArray();
+                context.Set<ThingPropertyItem>().AddOrUpdate(coll);
+                return coll.Cast<ThingPropertyItem>();
+            });
+        }
+
+        /// <summary>
+        /// 將指定的實體對象中擴展屬性對象合并到數據上下文中。
+        /// 這個函數不會調用上下文的保存方法。但是這個函數會發生訪問數據庫的操作。
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="collection"></param>
+        /// <returns>返回保存的數據對象。</returns>
+        [CLSCompliant(false)]
+        public static Task<IEnumerable<ThingPropertyItem>> SaveThingPropertyItemsAsync(DbContext context, params ThingEntityBase[] collection)
+        {
+            return SaveThingPropertyItemsAsync(context, collection);
+        }
+
         /// <summary>
         /// 构造函数。
         /// </summary>
@@ -258,13 +497,49 @@ namespace OW.Data.Entity
         [Description("创建的时间。注意使用UTC时间！")]
         public DateTime CreateUtc { get; set; } = DateTime.UtcNow;
 
+        List<ThingPropertyItem> _ThingPropertyItems;
+
         /// <summary>
         /// 描述事物某个属性的对象。这个对象记录的信息服务器不加理解，仅供使用接口的程序使用。
         /// </summary>
         [NotMapped]
         [DataMember]
         [Description("描述事物某个属性的对象。这个对象记录的信息服务器不加理解，仅供使用接口的程序使用。")]
-        public virtual List<ThingPropertyItem> ThingPropertyItems { get; set; }
+        public List<ThingPropertyItem> ThingPropertyItems
+        {
+            get
+            {
+                return _ThingPropertyItems ?? (_ThingPropertyItems = new List<ThingPropertyItem>());
+            }
+            set
+            {
+                _ThingPropertyItems = value;
+            }
+        }
+
+        /// <summary>
+        /// 使用指定集合数据合并到 <see cref="ThingPropertyItems"/> 属性中，用Id合并，如果不存在则添加，否则替换。
+        /// 当前对象 Id 全零时会立即返回，此情况将不会合并任何数据。
+        /// </summary>
+        /// <param name="collection"><see cref="ThingPropertyItem.ThingEntityId"/>与当前对象Id不同的将本忽略。</param>
+        /// <exception cref="ArgumentException"><paramref name="collection"/>有重复Id的对象。</exception>
+        public void MergeThingPropertyItems(IEnumerable<ThingPropertyItem> collection)
+        {
+            if (Guid.Empty == Id)
+                return;
+            var dic = collection.Where(c => c.ThingEntityId == Id).ToDictionary(c => c.Id);
+            var items = ThingPropertyItems;
+            for (int i = items.Count - 1; i >= 0; i--)
+            {
+                var item = items[i];
+                if (dic.TryGetValue(item.Id, out var tmp))    //若已经有相同Id的对象
+                {
+                    items[i] = tmp;
+                    dic.Remove(item.Id);
+                }
+            }
+            items.AddRange(dic.Values);
+        }
 
         /// <summary>
         /// 异步获取该实体对象的附属扩展信息。
@@ -288,7 +563,12 @@ namespace OW.Data.Entity
         {
             if (null != ThingPropertyItems)
             {
-                return Task.Run(() => { context.Set<ThingPropertyItem>().AddRange(ThingPropertyItems); });
+                foreach (var item in ThingPropertyItems)
+                {
+                    item.GeneratedIdIfEmpty();
+                    item.ThingEntityId = Id;
+                }
+                return Task.Run(() => { context.Set<ThingPropertyItem>().AddOrUpdate(ThingPropertyItems.ToArray()); });
             }
             else
                 return Task.CompletedTask;
@@ -320,19 +600,19 @@ namespace OW.Data.Entity
         }
 
         /// <summary>
-        /// 属性名称。只能是字符串。最长32字符。
+        /// 属性名称。只能是字符串。最长64字符。
         /// </summary>
         [DataMember]
-        [MaxLength(32)]
-        [Description("属性名称。只能是字符串。最长32字符。")]
+        [MaxLength(64)]
+        [Description("属性名称。只能是字符串。最长64字符。")]
+        [Index]
         public string Name { get; set; }
 
         /// <summary>
-        /// 属性的值。只能是字符串。最长256字符。
+        /// 属性的值。只能是字符串。
         /// </summary>
         [DataMember]
-        [MaxLength(256)]
-        [Description("属性的值。只能是字符串。最长256字符。")]
+        [Description("属性的值。只能是字符串。")]
         public string Value { get; set; }
 
         /// <summary>
@@ -349,8 +629,9 @@ namespace OW.Data.Entity
         /// </summary>
         [DataMember]
         [Description("排序号。同一个实体的多个扩展属性按此字段升序排序。序号不必连续，相等序号顺序随机。")]
-        public int OrderNum { get; set; } = 0;
+        public int OrderNumber { get; set; } = 0;
     }
 
 }
+#pragma warning restore CS3021 // 由于程序集没有 CLSCompliant 特性，因此类型或成员不需要 CLSCompliant 特性
 

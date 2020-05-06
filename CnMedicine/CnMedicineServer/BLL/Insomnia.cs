@@ -375,12 +375,18 @@ namespace CnMedicineServer.Bll
             var answerTemplates = db.Set<SurveysAnswerTemplate>();
             var coll = GetFirstCore(surveys, db);
             result.Conclusion = string.Join(",", coll.CnDrugResult.Select(c => $"{c.Item1}{c.Item2}"));
+            SetCnPrescriptiones(result, coll.CnDrugResult);
             result.ExtendedInfomation = coll.GetDescription();
             result.Description = $"{string.Join(",", coll.InsomniaCnDrugConversions.Select(c => c.CnMedicineConclusions).Distinct())}";
             if (string.IsNullOrWhiteSpace(result.Description))
                 result.Description = "(无有效病症输入)";
             return result;
         }
+
+        /// <summary>
+        /// TO DO
+        /// </summary>
+        public override List<Tuple<string, decimal>> Results => throw new NotImplementedException();
 
         /// <summary>
         /// 获取最初症状的结构化数据。

@@ -15,7 +15,7 @@ namespace OW.Data.Entity
     /// <summary>
     /// 指定属性，字段从文本文件映射。
     /// </summary>
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, Inherited = false, AllowMultiple = false)]
     public sealed class TextFieldNameAttribute : Attribute
     {
         // See the attribute guidelines at 

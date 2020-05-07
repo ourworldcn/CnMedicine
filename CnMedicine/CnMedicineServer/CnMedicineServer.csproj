@@ -270,6 +270,11 @@
     <Content Include="Content\月经提前\月经提前-症状表.txt" />
     <Content Include="Content\月经提前\月经提前-经络辨证表.txt" />
     <Content Include="Content\月经提前\月经提前-辨证分型表.txt" />
+    <Content Include="Content\月经错后\月经错后-加减表.txt" />
+    <Content Include="Content\月经错后\月经错后-症状归类表.txt" />
+    <Content Include="Content\月经错后\月经错后-症状表.txt" />
+    <Content Include="Content\月经错后\月经错后-经络辨证表.txt" />
+    <Content Include="Content\月经错后\月经错后-辨证分型表.txt" />
     <Content Include="Content\痛经\痛经病-分型表.txt" />
     <Content Include="Content\痛经\痛经病-症状归类表.txt" />
     <Content Include="Content\痛经\痛经病-症状表.txt" />

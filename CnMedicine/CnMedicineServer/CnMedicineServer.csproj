@@ -265,6 +265,11 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\CnMedicineServer.xml" />
     <Content Include="Content\剂量矫正-失眠.txt" />
+    <Content Include="Content\月经不定期\月经不定期-加减表.txt" />
+    <Content Include="Content\月经不定期\月经不定期-症状归类表.txt" />
+    <Content Include="Content\月经不定期\月经不定期-症状表.txt" />
+    <Content Include="Content\月经不定期\月经不定期-经络辨证表.txt" />
+    <Content Include="Content\月经不定期\月经不定期-辨证分型表.txt" />
     <Content Include="Content\月经提前\月经提前-加减表.txt" />
     <Content Include="Content\月经提前\月经提前-症状归类表.txt" />
     <Content Include="Content\月经提前\月经提前-症状表.txt" />

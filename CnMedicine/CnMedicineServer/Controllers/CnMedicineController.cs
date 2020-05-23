@@ -29,6 +29,7 @@ namespace CnMedicineServer.Controllers
 
     /// <summary>
     /// 专病功能控制器。
+    /// 建议访问本WebApi的脚本增加：jQuery.support.cors = true; 语句。
     /// </summary>
     [RoutePrefix("api/SpecialCasesInsomnia")]
     [EnableCors("*", "*", "*")/*crossDomain: true,*/]
@@ -78,12 +79,15 @@ namespace CnMedicineServer.Controllers
             }
         }
 
+        /// <summary>
+        /// 发送回调数据的地址。
+        /// </summary>
         const string _SaveConclusionPath = "/web/interface/questionnaire/save";
 
         static Lazy<HttpClient> _LazyHttpClient = new Lazy<HttpClient>(() =>
         {
             var result = new HttpClient();
-            result.BaseAddress = new Uri("http://39.104.89.104:7000");
+            result.BaseAddress = new Uri("https://www.yaoyiduo.com");
             result.DefaultRequestHeaders.Accept.Clear();
             result.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
@@ -91,7 +95,7 @@ namespace CnMedicineServer.Controllers
         }, true);
 
         /// <summary>
-        /// 获取方位其它WebApi的对象。
+        /// 获取访问其它WebApi的对象。
         /// </summary>
         /// <returns></returns>
         public static HttpClient GetHttpClient()
@@ -191,7 +195,7 @@ namespace CnMedicineServer.Controllers
                     if (flag > 0)
                         result = null;
                 }
-                result?.LoadThingPropertyItemsAsync(db);
+                result?.LoadThingPropertyItemsAsync(db)?.Wait();
                 return Ok(result);
             }
             catch (Exception err)
@@ -222,7 +226,7 @@ namespace CnMedicineServer.Controllers
                 return Ok(result);
             if ((current.CreateUtc - result.CreateUtc) > TimeSpan.FromDays(90))   //若超时
                 return Ok<Surveys>(null);
-            result.LoadThingPropertyItemsAsync(db);
+            result?.LoadThingPropertyItemsAsync(db)?.Wait();
             return Ok(result);
         }
 
@@ -431,11 +435,19 @@ namespace CnMedicineServer.Controllers
         [HttpGet]
         public IHttpActionResult GetSurveysById([FromUri]Guid surveysId)
         {
-            var db = DbContext;
-            var result = db.Set<Surveys>().Find(surveysId);
-            result?.LoadThingPropertyItemsAsync(db).Wait();
-            result?.LoadPictures(db);
-            return Ok(result);
+            try
+            {
+                var db = DbContext;
+                var result = db.Set<Surveys>().Find(surveysId);
+                result?.LoadThingPropertyItemsAsync(db)?.Wait();
+                result?.LoadPictures(db);
+                return Ok(result);
+
+            }
+            catch (Exception err)
+            {
+                return Ok($"调试信息:{err.Message}");
+            }
         }
 
         /// <summary>

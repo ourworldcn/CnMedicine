@@ -67,4 +67,36 @@ namespace CnMedicineServer.Models
         }
     }
 
+    [DataContract]
+    public class YueJingBuDingQiFenXing : GrrBianZhengFenXingBase
+    {
+        public YueJingBuDingQiFenXing()
+        {
+        }
+    }
+
+    [DataContract]
+    public class YueJingBuDingQiJingLuoBian : GrrJingLuoBianZhengBase
+    {
+        public YueJingBuDingQiJingLuoBian()
+        {
+        }
+    }
+
+    [DataContract]
+    public class YueJingBuDingQiGeneratedNumeber : GeneratedNumeber
+    {
+        public YueJingBuDingQiGeneratedNumeber()
+        {
+        }
+    }
+
+    [DataContract]
+    public class YueJingBuDingQiCnDrugCorrection : CnDrugCorrectionBase
+    {
+        public YueJingBuDingQiCnDrugCorrection()
+        {
+        }
+    }
+
 }

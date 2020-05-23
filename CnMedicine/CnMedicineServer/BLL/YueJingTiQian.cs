@@ -162,4 +162,80 @@ namespace CnMedicineServer.Bll
         }
     }
 
+    [OwAdditional(SurveysTemplateIdName, SurveysTemplateIdString)]
+    public class YueJingBuDingQiAlgorithm : GaoRonrongAlgorithmBase
+    {
+        /// <summary>
+        /// 此算法处理的调查模板Id。
+        /// </summary>
+        public const string SurveysTemplateIdString = "05A328D5-CC12-4FFC-853E-692530832BBA";
+
+        /// <summary>
+        /// 病种的中文名称。
+        /// </summary>
+        public const string CnName = "月经不定期";
+
+        /// <summary>
+        /// 初始化函数。
+        /// </summary>
+        /// <param name="context"></param>
+        [OwAdditional(InitializationFuncName)]
+        public static void Initialize(DbContext context)
+        {
+            InitializeCore(context, $"~/content/{CnName}/{CnName}-症状表.txt", typeof(YueJingBuDingQiAlgorithm));
+            var survId = Guid.Parse(SurveysTemplateIdString);
+            //初始化模板数据
+            var template = context.Set<SurveysTemplate>().Find(survId);
+            template.Name = CnName;
+            template.UserState = "支持复诊0";
+            template.Description = "月经先后无定期：月经周期或前或后1-2周者,称为“月经先后无定期”";
+            //添加专病项
+            InsomniaCasesItem caseItem = new InsomniaCasesItem()
+            {
+                Name = CnName,
+            };
+            context.Set<InsomniaCasesItem>().AddOrUpdate(caseItem);
+
+            context.SaveChanges();
+
+        }
+
+        /// <summary>
+        /// 构造函数。
+        /// </summary>
+        public YueJingBuDingQiAlgorithm()
+        {
+
+        }
+
+        public override IEnumerable<GeneratedNumeber> GeneratedNumebers =>
+            CnMedicineLogicBase.GetOrCreateAsync<YueJingBuDingQiGeneratedNumeber>($"~/Content/{CnName}/{CnName}-症状归类表.txt").Result;
+
+        public override IEnumerable<GrrBianZhengFenXingBase> BianZhengFenXings =>
+            CnMedicineLogicBase.GetOrCreateAsync<YueJingBuDingQiFenXing>($"~/Content/{CnName}/{CnName}-辨证分型表.txt").Result;
+
+        public override IEnumerable<GrrJingLuoBianZhengBase> JingLuoBianZhengs =>
+            CnMedicineLogicBase.GetOrCreateAsync<YueJingBuDingQiJingLuoBian>($"~/Content/{CnName}/{CnName}-经络辨证表.txt").Result;
+
+        public override IEnumerable<CnDrugCorrectionBase> CnDrugCorrections =>
+            CnMedicineLogicBase.GetOrCreateAsync<YueJingBuDingQiCnDrugCorrection>($"~/Content/{CnName}/{CnName}-加减表.txt").Result;
+
+
+        protected override SurveysConclusion GetResultCore(Surveys surveys, ApplicationDbContext db)
+        {
+            var result = new SurveysConclusion() { SurveysId = surveys.Id };
+            result.GeneratedIdIfEmpty();
+            var sy = db.SurveysTemplates.Where(c => c.Name == CnName).FirstOrDefault();
+            if (null == sy)
+                return null;
+            SetSigns(surveys.SurveysAnswers, db);
+            result.Conclusion = string.Join(",", Results.Select(c => $"{c.Item1}{c.Item2}"));
+            SetCnPrescriptiones(result, Results);
+
+            if (string.IsNullOrWhiteSpace(result.Conclusion))
+                result.Conclusion = "(您输入的症状暂无对应药方，请联系医生。)";
+            return result;
+        }
+    }
+
 }

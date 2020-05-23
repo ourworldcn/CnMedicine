@@ -216,6 +216,13 @@ namespace OW.Data.Entity
         [DataMember]
         public string UserState { get; set; }
 
+        /// <summary>
+        /// 显示该问题的前提编号。如果是空则不限制（无条件正常显示），否则逗号分隔的序号，如 "1005" 或 "2589,1560"之类。
+        /// 多个编号则需要多个编号全存在才显示此项。
+        /// </summary>
+        [DataMember]
+        public string DisplayConditions { get; set; }
+
         public object Clone()
         {
             var obj = this;
@@ -297,6 +304,14 @@ namespace OW.Data.Entity
         /// </summary>
         [DataMember]
         public string UserState { get; set; }
+
+        /// <summary>
+        /// 显示该问题的前提编号。如果是空则不限制（无条件正常显示），否则逗号分隔的序号，如 "1005" 或 "2589,1560"之类。
+        /// 若隶属的整个问题已经不显示，则不考虑该属性。
+        /// 多个编号则需要多个编号全存在才显示此项。
+        /// </summary>
+        [DataMember]
+        public string DisplayConditions { get; set; }
 
         public object Clone()
         {

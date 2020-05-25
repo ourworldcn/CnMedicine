@@ -245,7 +245,7 @@ namespace CnMedicineServer.Migrations
             var questionTemplates = st.Questions ?? new List<SurveysQuestionTemplate>();
             var rows = dt.Rows.OfType<DataRow>().Where(c => !c.HasErrors);
             //编号,问题,症候,类型,脏腑评分,证型评分,UserState
-            var items = rows.Select(c => new { 编号 = Convert.ToString(c["编号"]), 问题 = c["问题"].ToString(), 症候 = c["症候"].ToString(), 类型 = (QuestionsKind)Convert.ToInt32(c["类型"]), 脏腑评分 = c["脏腑评分"].ToString(), 证型评分 = c["证型评分"].ToString() });
+            var items = rows.Select(c => new { 编号 = Convert.ToString(c["编号"]), 问题 = c["问题"].ToString(), 前提= c["前提"].ToString(), 症候 = c["症候"].ToString(), 类型 = (QuestionsKind)Convert.ToInt32(c["类型"]), 脏腑评分 = c["脏腑评分"].ToString(), 证型评分 = c["证型评分"].ToString() });
             var groups = items.GroupBy(c => c.问题);
             var addTemplateQuestions = groups.Select(c => c.Key).Except(questionTemplates.Select(c => c.QuestionTitle));
             var addQuestions = groups.Where(c => addTemplateQuestions.Contains(c.Key)).Select(c =>
@@ -266,6 +266,7 @@ namespace CnMedicineServer.Migrations
                         {
                             OrderNum = int.Parse(subc.编号),
                             AnswerTitle = subc.症候,
+                            DisplayConditions = subc.前提,
                             UserState = $"编号{subc.编号}",
                         };
                     }));

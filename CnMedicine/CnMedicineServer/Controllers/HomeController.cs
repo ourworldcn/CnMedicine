@@ -29,5 +29,52 @@ namespace CnMedicineServer.Controllers
             return View();
         }
 
+        /// <summary>
+        /// 测试索引页。
+        /// </summary>
+        /// <returns></returns>
+        public ActionResult TestCover()
+        {
+            ViewBag.Title = "测试索引页";
+
+            return View();
+        }
+
+        /// <summary>
+        /// 测试简单本地注册页。
+        /// </summary>
+        /// <returns></returns>
+        public ActionResult TestRegister()
+        {
+            ViewBag.Title = "测试本地简要注册功能";
+
+            return View();
+        }
+
+        /// <summary>
+        /// 测试简单本地登录页。
+        /// </summary>
+        /// <returns></returns>
+        public ActionResult TestLogin()
+        {
+            ViewBag.Title = "测试本地简要注册功能";
+
+            return View();
+        }
+
+        /// <summary>
+        /// 测试成功登录的页。
+        /// 仅当成功登陆后此操作才能返回正常的页面。
+        /// </summary>
+        /// <returns></returns>
+        [Authorize]
+        public ActionResult TestLogined()
+        {
+            ViewBag.Title = "测试本地简要注册功能";
+            var context = Request.GetOwinContext();
+            return View("TestLogin");
+        }
+
+
     }
 }

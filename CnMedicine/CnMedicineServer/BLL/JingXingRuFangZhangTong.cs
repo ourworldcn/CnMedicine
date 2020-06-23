@@ -257,7 +257,7 @@ namespace CnMedicineServer.Bll
                 SurveysQuestionTemplate sqt = new SurveysQuestionTemplate()
                 {
                     Kind = c.First().QuestionsKind,
-                    OrderNum = c.First().Number,
+                    IdNumber = c.First().Number,
                     QuestionTitle = c.Key,
                     UserState = "",
                 };
@@ -266,7 +266,7 @@ namespace CnMedicineServer.Bll
                     SurveysAnswerTemplate sat = new SurveysAnswerTemplate()
                     {
                         AnswerTitle = subc.ZhengZhuang,
-                        OrderNum = subc.Number,
+                        IdNumber = subc.Number,
                         UserState = $"编号{subc.Number}",
                     };
                     return sat;

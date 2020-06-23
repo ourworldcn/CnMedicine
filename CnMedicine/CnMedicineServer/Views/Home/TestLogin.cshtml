@@ -1,0 +1,39 @@
+﻿@model CnMedicineServer.Models.LocalLoginBindingModel
+
+<div class="jumbotron">
+    <h1>ASP.NET</h1>
+    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS, and JavaScript.</p>
+    <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
+</div>
+
+
+<h2>@ViewBag.Title</h2>
+@*@using (Ajax.BeginForm("Register", "Interface/Account", null, new AjaxOptions { HttpMethod = "POST", UpdateTargetId = "result", OnSuccess = "OnSuccess" }))*@
+<div class="container">
+
+    @using (Html.BeginForm("Login", "api/Account", FormMethod.Post, new { name = "register", onsubmit = "return checkform()" }))
+    {
+        <div class="row">
+            @Html.LabelFor(model => model.UserName, new { @class = "col-md-2" })
+            @Html.TextBoxFor(model => model.UserName, new { @class = "text-box" })
+        </div>
+        <div class="row">
+            @Html.LabelFor(model => model.Password, new { @class = "col-md-2" })
+            @Html.EditorFor(model => model.Password, new { @class = "text-box" })
+        </div>
+        <input class="regBtn" type="submit" value="登录" />
+        <input class="resetBtn" type="reset" value="重置" />
+
+        //令牌，防止重复提交
+        @Html.AntiForgeryToken()
+        //模型错误信息汇总，也可以在每一项后面添加
+        //@Html.ValidationMessage
+        @Html.ValidationSummary(false)
+    }
+</div>
+
+<div>
+    <ol>
+        <li>@Html.ActionLink("测试登录", "UserInfo", "api/UserInfomation", new { area = "" }, null)</li>
+    </ol>
+</div>

@@ -80,6 +80,12 @@ namespace CnMedicineServer.Bll
 
         }
 
+        /// <summary>
+        /// 對一組症狀多個分型的匹配值如果與最大匹配值的差小於或等於此值則取最大平均匹配值的分型。
+        /// 默認值:0.1。
+        /// </summary>
+        public float MaxDiffOfFenXing { get; set; } = 0.1f;
+
         private Tuple<string, Type> _BianZhengFenXingsInfo;
 
         /// <summary>
@@ -167,24 +173,27 @@ namespace CnMedicineServer.Bll
                 lock (SyncLocker)
                     if (null == _FenXing)
                     {
+                        _FenXing = new List<GrrBianZhengFenXingBase>();
                         var collAlternative = (from tmp in Fenxing2Matching    //备选
                                                where tmp.Key.ThresholdsOfLowest <= tmp.Value //符合最低匹配度要求的才入选
                                                select tmp).ToArray();
                         var avgDic = (from tmp in collAlternative
                                       group tmp by tmp.Key.GroupNumber into g
-                                      select new { g.Key, Avg = g.Average(c => c.Value) });    //求平均匹配度
+                                      select new { GroupNumber = g.Key, Avg = g.Average(c => c.Value) });    //求平均匹配度
                         var coll = from tmp in collAlternative
-                                   join avg in avgDic on tmp.Key.GroupNumber equals avg.Key
+                                   join avg in avgDic on tmp.Key.GroupNumber equals avg.GroupNumber
                                    orderby avg.Avg descending, tmp.Value descending //平均匹配度 匹配度降序
-                                   select new { tmp.Key, Matching = tmp.Value, AvgMating = avg.Avg };
+                                   select new { tmp.Key, Matching = tmp.Value, AvgMatching = avg.Avg };
                         var result = coll.ToArray();
-                        var fenxing = coll.FirstOrDefault(c => c.Matching >= c.Key.Thresholds); //获取最佳匹配
-                        if (null == fenxing)   //如果没有找到
-                            fenxing = coll.FirstOrDefault(c => c.Matching >= c.Key.ThresholdsOfLowest); //降格处理
-                        _FenXing = new List<GrrBianZhengFenXingBase>();
-                        if (null != fenxing)
-                            _FenXing.Add(fenxing.Key);
-                        AdditionalNumbers.AddRange(_FenXing.Select(c => c.Number));    //辩证的编号加入编号集合
+                        if (result.Any())   //若有任何匹配
+                        {
+                            var maxMatching = result.Max(c => c.Matching);  //最大匹配值
+                            var singleResult = result.FirstOrDefault(c => maxMatching - c.Matching <= MaxDiffOfFenXing);    //獲取最佳匹配
+
+                            if (null != singleResult)
+                                _FenXing.Add(singleResult.Key);
+                            AdditionalNumbers.AddRange(_FenXing.Select(c => c.Number));    //辩证的编号加入编号集合
+                        }
                     }
                 return _FenXing;
             }

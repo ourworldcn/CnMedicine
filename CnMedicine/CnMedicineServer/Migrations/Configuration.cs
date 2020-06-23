@@ -178,7 +178,7 @@ namespace CnMedicineServer.Migrations
                 var kind = c.First().¿‡–Õ;
                 var result = new SurveysQuestionTemplate()
                 {
-                    OrderNum = int.Parse(c.First().±‡∫≈),
+                    IdNumber = int.Parse(c.First().±‡∫≈),
                     QuestionTitle = c.Key,
                     SurveysTemplateId = st.Id,
                     UserState = $"",
@@ -189,7 +189,7 @@ namespace CnMedicineServer.Migrations
                     {
                         return new SurveysAnswerTemplate()
                         {
-                            OrderNum = int.Parse(subc.±‡∫≈),
+                            IdNumber = int.Parse(subc.±‡∫≈),
                             AnswerTitle = subc.÷¢∫Ú,
                             UserState = $"±‡∫≈{subc.±‡∫≈}",
                         };
@@ -253,7 +253,7 @@ namespace CnMedicineServer.Migrations
                 var kind = c.First().¿‡–Õ;
                 var result = new SurveysQuestionTemplate()
                 {
-                    OrderNum = int.Parse(c.First().±‡∫≈),
+                    IdNumber = int.Parse(c.First().±‡∫≈),
                     QuestionTitle = c.Key,
                     SurveysTemplateId = st.Id,
                     UserState = $"",
@@ -264,7 +264,7 @@ namespace CnMedicineServer.Migrations
                     {
                         return new SurveysAnswerTemplate()
                         {
-                            OrderNum = int.Parse(subc.±‡∫≈),
+                            IdNumber = int.Parse(subc.±‡∫≈),
                             AnswerTitle = subc.÷¢∫Ú,
                             DisplayConditions = subc.«∞Ã·,
                             UserState = $"±‡∫≈{subc.±‡∫≈}",

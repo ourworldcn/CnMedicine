@@ -20,9 +20,9 @@ using System.Web.Http.Description;
 
 namespace CnMedicineServer.Controllers
 {
-    [ApiExplorerSettings(IgnoreApi = true)]
     [Authorize]
     [RoutePrefix("api/Account")]
+    //[HostAuthentication(DefaultAuthenticationTypes.ApplicationCookie)]
     public class AccountController : ApiController
     {
         private const string LocalLoginProvider = "Local";
@@ -54,6 +54,7 @@ namespace CnMedicineServer.Controllers
         public ISecureDataFormat<AuthenticationTicket> AccessTokenFormat { get; private set; }
 
         // GET api/Account/UserInfo
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HostAuthentication(DefaultAuthenticationTypes.ExternalBearer)]
         [Route("UserInfo")]
         public UserInfoViewModel GetUserInfo()
@@ -69,6 +70,7 @@ namespace CnMedicineServer.Controllers
         }
 
         // POST api/Account/Logout
+        [ApiExplorerSettings(IgnoreApi = true)]
         [Route("Logout")]
         public IHttpActionResult Logout()
         {
@@ -77,6 +79,7 @@ namespace CnMedicineServer.Controllers
         }
 
         // GET api/Account/ManageInfo?returnUrl=%2F&generateState=true
+        [ApiExplorerSettings(IgnoreApi = true)]
         [Route("ManageInfo")]
         public async Task<ManageInfoViewModel> GetManageInfo(string returnUrl, bool generateState = false)
         {
@@ -117,6 +120,7 @@ namespace CnMedicineServer.Controllers
         }
 
         // POST api/Account/ChangePassword
+        [ApiExplorerSettings(IgnoreApi = true)]
         [Route("ChangePassword")]
         public async Task<IHttpActionResult> ChangePassword(ChangePasswordBindingModel model)
         {
@@ -127,7 +131,7 @@ namespace CnMedicineServer.Controllers
 
             IdentityResult result = await UserManager.ChangePasswordAsync(User.Identity.GetUserId(), model.OldPassword,
                 model.NewPassword);
-            
+
             if (!result.Succeeded)
             {
                 return GetErrorResult(result);
@@ -137,6 +141,7 @@ namespace CnMedicineServer.Controllers
         }
 
         // POST api/Account/SetPassword
+        [ApiExplorerSettings(IgnoreApi = true)]
         [Route("SetPassword")]
         public async Task<IHttpActionResult> SetPassword(SetPasswordBindingModel model)
         {
@@ -151,11 +156,11 @@ namespace CnMedicineServer.Controllers
             {
                 return GetErrorResult(result);
             }
-
             return Ok();
         }
 
         // POST api/Account/AddExternalLogin
+        [ApiExplorerSettings(IgnoreApi = true)]
         [Route("AddExternalLogin")]
         public async Task<IHttpActionResult> AddExternalLogin(AddExternalLoginBindingModel model)
         {
@@ -194,6 +199,7 @@ namespace CnMedicineServer.Controllers
         }
 
         // POST api/Account/RemoveLogin
+        [ApiExplorerSettings(IgnoreApi = true)]
         [Route("RemoveLogin")]
         public async Task<IHttpActionResult> RemoveLogin(RemoveLoginBindingModel model)
         {
@@ -223,6 +229,7 @@ namespace CnMedicineServer.Controllers
         }
 
         // GET api/Account/ExternalLogin
+        [ApiExplorerSettings(IgnoreApi = true)]
         [OverrideAuthentication]
         [HostAuthentication(DefaultAuthenticationTypes.ExternalCookie)]
         [AllowAnonymous]
@@ -260,9 +267,9 @@ namespace CnMedicineServer.Controllers
             if (hasRegistered)
             {
                 Authentication.SignOut(DefaultAuthenticationTypes.ExternalCookie);
-                
-                 ClaimsIdentity oAuthIdentity = await user.GenerateUserIdentityAsync(UserManager,
-                    OAuthDefaults.AuthenticationType);
+
+                ClaimsIdentity oAuthIdentity = await user.GenerateUserIdentityAsync(UserManager,
+                   OAuthDefaults.AuthenticationType);
                 ClaimsIdentity cookieIdentity = await user.GenerateUserIdentityAsync(UserManager,
                     CookieAuthenticationDefaults.AuthenticationType);
 
@@ -280,6 +287,7 @@ namespace CnMedicineServer.Controllers
         }
 
         // GET api/Account/ExternalLogins?returnUrl=%2F&generateState=true
+        [ApiExplorerSettings(IgnoreApi = true)]
         [AllowAnonymous]
         [Route("ExternalLogins")]
         public IEnumerable<ExternalLoginViewModel> GetExternalLogins(string returnUrl, bool generateState = false)
@@ -320,29 +328,8 @@ namespace CnMedicineServer.Controllers
             return logins;
         }
 
-        // POST api/Account/Register
-        [AllowAnonymous]
-        [Route("Register")]
-        public async Task<IHttpActionResult> Register(RegisterBindingModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
-
-            IdentityResult result = await UserManager.CreateAsync(user, model.Password);
-
-            if (!result.Succeeded)
-            {
-                return GetErrorResult(result);
-            }
-
-            return Ok();
-        }
-
         // POST api/Account/RegisterExternal
+        [ApiExplorerSettings(IgnoreApi = true)]
         [OverrideAuthentication]
         [HostAuthentication(DefaultAuthenticationTypes.ExternalBearer)]
         [Route("RegisterExternal")]
@@ -370,7 +357,7 @@ namespace CnMedicineServer.Controllers
             result = await UserManager.AddLoginAsync(user.Id, info.Login);
             if (!result.Succeeded)
             {
-                return GetErrorResult(result); 
+                return GetErrorResult(result);
             }
             return Ok();
         }
@@ -492,5 +479,97 @@ namespace CnMedicineServer.Controllers
         }
 
         #endregion
+
+        /// <summary>
+        /// 本地登录。
+        /// </summary>
+        /// <param name="model">本地登录的数据封装类。</param>
+        /// <returns>如果失败则返回Http状态500。
+        /// 成功返回200后，请记录Cookie中 .AspNet.ApplicationCookie 的内容，每次调用时使用此Cookie即可。此时返回了用户的Id。</returns>
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [AllowAnonymous]
+        [OverrideAuthentication]
+        [Route("Login")]
+        [ResponseType(typeof(string))]
+        public async Task<IHttpActionResult> Login(LocalLoginBindingModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            //var roleManager = HttpContext.Current.GetOwinContext().Get<ApplicationRoleManager>();
+
+            var user = await UserManager.FindAsync(model.UserName, model.Password);
+            if (null == user)
+            {
+                return BadRequest("未找到用户名或密码错误。");
+            }
+            var identity = await UserManager.CreateIdentityAsync(user, /*DefaultAuthenticationTypes.ApplicationCookie*/"Bearer");
+            Authentication.SignOut();
+            Authentication.SignIn(new AuthenticationProperties() { IsPersistent = true, ExpiresUtc = DateTime.UtcNow + TimeSpan.FromDays(1) }, identity);
+            var db = Request.GetOwinContext().Get<ApplicationDbContext>();
+            //db.Set<DbLog>().Add(new DbLog() { Description = $"Login", UserId = user.Id });
+            await db.SaveChangesAsync();
+            //临时方案，鉴于登录模式的不确定性
+            //_Logins.AddOrUpdate(user.Id, DateTime.UtcNow, (id, ov) => DateTime.UtcNow);
+            return Ok(user.Id);
+        }
+
+        // POST api/Account/Register
+        //[AllowAnonymous]
+        //[Route("Register")]
+        //public async Task<IHttpActionResult> Register(RegisterBindingModel model)
+        //{
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest(ModelState);
+        //    }
+
+        //    var user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
+
+        //    IdentityResult result = await UserManager.CreateAsync(user, model.Password);
+
+        //    if (!result.Succeeded)
+        //    {
+        //        return GetErrorResult(result);
+        //    }
+
+        //    return Ok();
+        //}
+
+        /// <summary>
+        /// 注册用户。本地简要注册。
+        /// </summary>
+        /// <param name="model">注册基本信息使用的模型对象。</param>
+        /// <returns>状态码200则成功,此时返回用户Id。其它参见HTTP状态码。或者注册一个错误信息参见返回值。</returns>
+        [AllowAnonymous]
+        [Route("Register")]
+        [ResponseType(typeof(string))]
+        public async Task<IHttpActionResult> Register(LocalSimpleRegisterBindingModel model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            var user = new ApplicationUser() { UserName = model.UserName, Email = model.Email };
+
+            IdentityResult result = await UserManager.CreateAsync(user, model.Password);
+
+            if (!result.Succeeded)
+            {
+                //return GetErrorResult(result);
+                return BadRequest(string.Join(",", result.Errors));
+            }
+
+            return Ok(user.Id);
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [Route("TestLogined")]
+        [ResponseType(typeof(string))]
+        public IHttpActionResult TestLogined()
+        {
+            var user = User?.Identity?.GetUserName();
+            return Ok(user);
+        }
     }
 }

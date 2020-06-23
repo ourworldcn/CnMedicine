@@ -220,6 +220,7 @@
     <Compile Include="BLL\JingXingRuFangZhangTong.cs" />
     <Compile Include="BLL\Rhinitis.cs" />
     <Compile Include="BLL\TongJing.cs" />
+    <Compile Include="BLL\YueJingBuDingLiang.cs" />
     <Compile Include="BLL\YueJingTiQian.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\CnMedicineController.cs" />
@@ -237,6 +238,7 @@
     <Compile Include="Dao\SpecialCasesModels.cs" />
     <Compile Include="Dao\SurveysModels.cs" />
     <Compile Include="Dao\TongJingModels.cs" />
+    <Compile Include="Dao\YuejingLiangYichang.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -275,6 +277,16 @@
     <Content Include="Content\月经提前\月经提前-症状表.txt" />
     <Content Include="Content\月经提前\月经提前-经络辨证表.txt" />
     <Content Include="Content\月经提前\月经提前-辨证分型表.txt" />
+    <Content Include="Content\月经量过多\月经过多-加减表.txt" />
+    <Content Include="Content\月经量过多\月经过多-症状归类表.txt" />
+    <Content Include="Content\月经量过多\月经过多-症状表.txt" />
+    <Content Include="Content\月经量过多\月经过多-经络辨证表.txt" />
+    <Content Include="Content\月经量过多\月经过多-辨证分型表.txt" />
+    <Content Include="Content\月经量过少\月经过少-加减表.txt" />
+    <Content Include="Content\月经量过少\月经过少-症状归类表.txt" />
+    <Content Include="Content\月经量过少\月经过少-症状表.txt" />
+    <Content Include="Content\月经量过少\月经过少-经络辨证表.txt" />
+    <Content Include="Content\月经量过少\月经过少-辨证分型表.txt" />
     <Content Include="Content\月经错后\月经错后-加减表.txt" />
     <Content Include="Content\月经错后\月经错后-症状归类表.txt" />
     <Content Include="Content\月经错后\月经错后-症状表.txt" />
@@ -358,6 +370,9 @@
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
+    <Content Include="Views\Home\TestLogin.cshtml" />
+    <Content Include="Views\Home\TestCover.cshtml" />
+    <Content Include="Views\Home\TestRegister.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

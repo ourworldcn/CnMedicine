@@ -33,6 +33,7 @@ namespace CnMedicineServer.Controllers
     /// </summary>
     [RoutePrefix("api/SpecialCasesInsomnia")]
     [EnableCors("*", "*", "*")/*crossDomain: true,*/]
+    [AllowAnonymous]
     public class SpecialCasesInsomniaController : OwApiControllerBase
     {
         static Lazy<ConcurrentDictionary<Guid, Type>> _AllAlgorithmTypes = new Lazy<ConcurrentDictionary<Guid, Type>>(() =>
@@ -471,7 +472,7 @@ namespace CnMedicineServer.Controllers
             var template = db.SurveysTemplates.Find(templateId);
             var answerTemplates = template.Questions.SelectMany(c => c.Answers).ToArray();
             var coll = from tmp in answerTemplates
-                       where model.Contains(tmp.OrderNum)
+                       where model.Contains(tmp.IdNumber)
                        select tmp;
             answers.SurveysAnswers.AddRange(coll.Select(c => new SurveysAnswer() { TemplateId = c.Id }));
             return SetSurveys(answers);

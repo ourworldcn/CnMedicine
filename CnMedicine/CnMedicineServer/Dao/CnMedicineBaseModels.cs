@@ -320,6 +320,10 @@ namespace CnMedicineServer.Models
             }
         }
 
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 
     /// <summary>
@@ -443,7 +447,8 @@ namespace CnMedicineServer.Models
         /*
           * 编号	阈值	加药	减药	类型号
           * 10，1510。	1	小茴香12 龙眼肉6 五灵脂10		1
-          * */
+          * 
+          */
 
         [TextFieldName("编号")]
         public virtual string NumbersString { get; set; }

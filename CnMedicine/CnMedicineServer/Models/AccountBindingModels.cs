@@ -81,4 +81,67 @@ namespace CnMedicineServer.Models
         [Compare("NewPassword", ErrorMessage = "新密码和确认密码不匹配。")]
         public string ConfirmPassword { get; set; }
     }
+
+    /// <summary>
+    /// 本地登录的数据封装类。
+    /// </summary>
+    public class LocalLoginBindingModel
+    {
+        /// <summary>
+        /// 用户名。
+        /// </summary>
+        [Required]
+        [Display(Name = "用户名")]
+        public string UserName { get; set; }
+
+        /// <summary>
+        /// 密码。暂时没有要求密码复杂性。但至少不能为空。
+        /// </summary>
+        [Required]
+        [DataType(DataType.Password)]
+        [Display(Name = "密码")]
+        [StringLength(100, ErrorMessage = "{0} 必须至少包含 {2} 个字符。", MinimumLength = 1)]
+        public string Password { get; set; }
+
+    }
+
+    /// <summary>
+    /// 本地简要注册，所需的数据封装类。
+    /// </summary>
+    public class LocalSimpleRegisterBindingModel
+    {
+        /// <summary>
+        /// 用户名。
+        /// </summary>
+        [Required]
+        [Display(Name = "用户名")]
+        public string UserName { get; set; }
+
+        /// <summary>
+        /// 电子邮件。
+        /// </summary>
+        [Required(AllowEmptyStrings = false)]
+        [Display(Name = "电子邮件")]
+        [DataType(DataType.EmailAddress)]
+        public string Email { get; set; }
+
+        /// <summary>
+        /// 密码。暂时没有要求密码复杂性。但至少不能为空(至少1字符)。
+        /// </summary>
+        [Required]
+        [DataType(DataType.Password)]
+        [Display(Name = "密码")]
+        [StringLength(100, ErrorMessage = "{0} 必须至少包含 {2} 个字符。", MinimumLength = 1)]
+        public string Password { get; set; }
+
+        /// <summary>
+        /// 确认密码。暂时没有要求密码复杂性。
+        /// </summary>
+        [DataType(DataType.Password)]
+        [Display(Name = "确认密码")]
+        [Compare("Password", ErrorMessage = "密码和确认密码不匹配。")]
+        public string ConfirmPassword { get; set; }
+    }
+
+
 }

@@ -126,8 +126,8 @@ namespace CnMedicineServer.Bll
         {
             _Answers = answers.ToList();
             var tIds = _Answers.Select(c => c.TemplateId).ToArray();
-            _AnswerTemplates = dbContext.Set<SurveysAnswerTemplate>().Where(c => tIds.Contains(c.Id)).ToDictionary(c => c.OrderNum);
-            _QuestionTemplates = dbContext.Set<SurveysQuestionTemplate>().Where(c => tIds.Contains(c.Id)).ToDictionary(c => c.OrderNum);
+            _AnswerTemplates = dbContext.Set<SurveysAnswerTemplate>().Where(c => tIds.Contains(c.Id)).ToDictionary(c => c.IdNumber);
+            _QuestionTemplates = dbContext.Set<SurveysQuestionTemplate>().Where(c => tIds.Contains(c.Id)).ToDictionary(c => c.IdNumber);
             _Numbers = new HashSet<int>(_AnswerTemplates.Keys.Union(_QuestionTemplates.Keys));
         }
 
@@ -140,8 +140,8 @@ namespace CnMedicineServer.Bll
         {
             _Answers = answers.ToList();
             var tIds = _Answers.Select(c => c.TemplateId).ToArray();
-            _AnswerTemplates = dbContext.Set<SurveysAnswerTemplate>().Where(c => tIds.Contains(c.Id)).ToDictionary(c => c.OrderNum);
-            _QuestionTemplates = dbContext.Set<SurveysQuestionTemplate>().Where(c => tIds.Contains(c.Id)).ToDictionary(c => c.OrderNum);
+            _AnswerTemplates = dbContext.Set<SurveysAnswerTemplate>().Where(c => tIds.Contains(c.Id)).ToDictionary(c => c.IdNumber);
+            _QuestionTemplates = dbContext.Set<SurveysQuestionTemplate>().Where(c => tIds.Contains(c.Id)).ToDictionary(c => c.IdNumber);
             _Numbers = new HashSet<int>(_AnswerTemplates.Keys.Concat(_QuestionTemplates.Keys));
         }
 
@@ -178,7 +178,7 @@ namespace CnMedicineServer.Bll
         /// 初始化症状数据。
         /// </summary>
         /// <param name="context"></param>
-        /// <param name="signsFileName">症状数据的文件名，如"~/content/xxx/xxx1,txt"</param>
+        /// <param name="signsFileName">症状数据的文件名，如"~/content/xxx/xxx1.txt"</param>
         /// <param name="algorithmType"></param>
         public static void InitializeCore(DbContext context, string signsFileName, Type algorithmType)
         {
@@ -220,17 +220,20 @@ namespace CnMedicineServer.Bll
                 SurveysQuestionTemplate sqt = new SurveysQuestionTemplate()
                 {
                     Kind = c.First().QuestionsKind,
-                    OrderNum = c.First().Number,
+                    IdNumber = c.First().Number,
                     QuestionTitle = c.Key,
                     UserState = "",
+                    OrderNum = c.First().OrderNum,
                 };
                 sqt.Answers = c.Select(subc =>
                 {
                     SurveysAnswerTemplate sat = new SurveysAnswerTemplate()
                     {
                         AnswerTitle = subc.ZhengZhuang,
-                        OrderNum = subc.Number,
+                        IdNumber = subc.Number,
                         UserState = $"编号{subc.Number}",
+                        DisplayConditions = subc.DisplayContions,
+                        OrderNum = subc.OrderNum,
                     };
                     return sat;
                 }).ToList();
@@ -380,8 +383,8 @@ namespace CnMedicineServer.Bll
         {
             _Answers = answers.ToList();
             var tIds = _Answers.Select(c => c.TemplateId).ToArray();
-            _AnswerTemplates = dbContext.Set<SurveysAnswerTemplate>().Where(c => tIds.Contains(c.Id)).ToDictionary(c => c.OrderNum);
-            _QuestionTemplates = dbContext.Set<SurveysQuestionTemplate>().Where(c => tIds.Contains(c.Id)).ToDictionary(c => c.OrderNum);
+            _AnswerTemplates = dbContext.Set<SurveysAnswerTemplate>().Where(c => tIds.Contains(c.Id)).ToDictionary(c => c.IdNumber);
+            _QuestionTemplates = dbContext.Set<SurveysQuestionTemplate>().Where(c => tIds.Contains(c.Id)).ToDictionary(c => c.IdNumber);
             _Numbers = new HashSet<int>(_AnswerTemplates.Keys.Concat(_QuestionTemplates.Keys));
         }
 
@@ -488,6 +491,25 @@ namespace CnMedicineServer.Bll
         /// </summary>
         [TextFieldName("说明")]
         public virtual string Description { get; set; }
+
+        /// <summary>
+        /// 显示前提条件编号列表，多个编号以逗号分开，要满足所有条件才会显示。
+        /// </summary>
+        [TextFieldName("前提")]
+        public string DisplayContions { get; set; }
+
+        private int _OrderNum = int.MinValue;
+
+        /// <summary>
+        /// 控制显示顺序的序号，不必连续可正可负，从最小的开始显示。
+        /// 默认值：<see cref="int.MinValue"/>，此时使用 <see cref="Number"/>属性的值。
+        /// </summary>
+        [TextFieldName("显示序列号")]
+        public virtual int OrderNum
+        {
+            get { return _OrderNum == int.MinValue ? Number : _OrderNum; }
+            set { _OrderNum = value; }
+        }
 
     }
 

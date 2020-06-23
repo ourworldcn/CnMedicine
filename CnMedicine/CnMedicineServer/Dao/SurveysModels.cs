@@ -199,10 +199,17 @@ namespace OW.Data.Entity
         public string QuestionTitle { get; set; }
 
         /// <summary>
-        /// 此问题出现的顺序号。越小越靠前。不必连续，也未必是正数。
+        /// 此问题的编号。
         /// </summary>
         [DataMember]
-        public int OrderNum { get; set; }
+        public int IdNumber { get; set; }
+
+        /// <summary>
+        /// 此问题出现的顺序号。越小越靠前。不必连续，也未必是正数。
+        /// </summary>
+        int _OrderNum = int.MinValue;
+        [DataMember]
+        public int OrderNum { get => _OrderNum == int.MinValue ? IdNumber : _OrderNum; set => _OrderNum = value; }
 
         /// <summary>
         /// 问题的类型。
@@ -235,7 +242,7 @@ namespace OW.Data.Entity
                 ShortName = obj.ShortName,
                 Answers = obj.Answers.Select(c => (SurveysAnswerTemplate)c.Clone()).ToList(),
                 Kind = obj.Kind,
-                OrderNum = obj.OrderNum,
+                IdNumber = obj.IdNumber,
                 QuestionTitle = obj.QuestionTitle,
                 SurveysTemplateId = obj.SurveysTemplateId,
                 UserState = obj.UserState,
@@ -285,10 +292,18 @@ namespace OW.Data.Entity
         public string AnswerTitle { get; set; }
 
         /// <summary>
+        /// 此答案的编号。
+        /// </summary>
+        [DataMember]
+        public int IdNumber { get; set; }
+
+        int _OrderNum = int.MinValue;
+
+        /// <summary>
         /// 此项出现的顺序号。越小越靠前。不必连续，也未必是正数。仅作为排序参考。
         /// </summary>
         [DataMember]
-        public int OrderNum { get; set; }
+        public int OrderNum { get => _OrderNum == int.MinValue ? IdNumber : _OrderNum; set => _OrderNum = value; }
 
         /// <summary>
         /// 暂时无用。
@@ -325,7 +340,7 @@ namespace OW.Data.Entity
                 ShortName = obj.ShortName,
                 AllowAdditional = obj.AllowAdditional,
                 AnswerTitle = obj.AnswerTitle,
-                OrderNum = obj.OrderNum,
+                IdNumber = obj.IdNumber,
                 SurveysQuestionTemplateId = obj.SurveysQuestionTemplateId,
                 UserState = obj.UserState,
             };

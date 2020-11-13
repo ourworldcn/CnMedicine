@@ -177,6 +177,120 @@ namespace CnMedicineServer.Bll
         /// <summary>
         /// 初始化症状数据。
         /// </summary>
+        /// <param name="context">访问的数据上下文。</param>
+        /// <param name="signs">症状数据集合。</param>
+        /// <param name="algorithmType"></param>
+        /// <exception cref="InvalidOperationException">algorithmType 类型没有合适的OwAdditionalAttribute批注。</exception>
+        public static void InitializeCore2(DbContext context, IEnumerable<CnMedicineSignsBase> signs, Type algorithmType)
+        {
+            #region 获取专病的Id。
+            var idAttr = algorithmType.GetCustomAttributes(true).OfType<OwAdditionalAttribute>().FirstOrDefault(c => c.Name == SurveysTemplateIdName);
+            if (null == idAttr)
+                throw new InvalidOperationException($"{algorithmType}类型没有合适的{typeof(OwAdditionalAttribute)}批注。");
+            var SurveysTemplateIdString = idAttr.Value;
+            var survId = Guid.Parse(SurveysTemplateIdString);
+            #endregion 获取专病的Id。
+
+            #region 处理问卷模板对象
+            var surveysTemplate = context.Set<SurveysTemplate>().Find(survId);
+            if (null == surveysTemplate)  //若没有模板对象
+            {
+                surveysTemplate = new SurveysTemplate()
+                {
+                    Id = survId,
+                    //Name = "经行乳房胀痛",
+                    //UserState = "支持复诊0",
+                    Questions = new List<SurveysQuestionTemplate>(),
+                    //Description = "经行乳房痛：每值经前或经期乳房作胀,甚至胀满疼痛,或乳头痒痛者,称“经行乳房痛”。包含乳腺增生、乳腺纤维瘤等乳腺疾病的伴发症状。",
+                };
+                context.Set<SurveysTemplate>().Add(surveysTemplate);
+            }
+            var questions = surveysTemplate.Questions;    //问题对象集合
+            #endregion 处理问卷模板对象
+
+            var coll = (from tmp in signs
+                        group tmp by tmp.Question);
+            var srcs = coll.ToDictionary(c => c.Key, c => c.ToArray());   //按问题分组
+            var intersectQuestions = new HashSet<string>(srcs.Keys.Intersect(questions.Select(c => c.QuestionTitle)));   //重合的问题
+
+            #region 删除已经不存在的问题
+            var removeQuestions = questions.Where(c => !intersectQuestions.Contains(c.QuestionTitle)).ToArray();    //应该删除的问题对象
+            context.Set<SurveysQuestionTemplate>().RemoveRange(removeQuestions);
+            #endregion 删除已经不存在的问题
+
+            #region 加入新问题
+            var addQuestions = signs.Where(c => !intersectQuestions.Contains(c.Question)).GroupBy(c => c.Question).Select(c =>
+            {
+                SurveysQuestionTemplate sqt = new SurveysQuestionTemplate()
+                {
+                    Kind = c.First().QuestionsKind,
+                    IdNumber = c.First().Number,
+                    QuestionTitle = c.Key,
+                    UserState = "",
+                    OrderNum = c.First().OrderNum,
+                };
+                sqt.Answers = c.Select(subc =>
+                {
+                    SurveysAnswerTemplate sat = new SurveysAnswerTemplate()
+                    {
+                        AnswerTitle = subc.ZhengZhuang,
+                        IdNumber = subc.Number,
+                        UserState = $"编号{subc.Number}",
+                        DisplayConditions = subc.DisplayContions,
+                        OrderNum = subc.OrderNum,
+                    };
+                    return sat;
+                }).ToList();
+                return sqt;
+            });
+            surveysTemplate.Questions.AddRange(addQuestions);            //应加入的问题对象
+            #endregion 加入新问题
+
+            #region 更新问题
+            foreach (var item in questions.Where(c => intersectQuestions.Contains(c.QuestionTitle)).ToArray())    //逐一遍历需要更新的问题对象
+            {
+                var src = srcs[item.QuestionTitle];
+                item.Kind = src.First().QuestionsKind;
+                item.IdNumber = src.First().Number;
+                item.UserState = "";
+                item.OrderNum = src.First().OrderNum;
+                //处理答案对象的合并事宜
+                //删除答案对象
+
+                for (int i = item.Answers.Count - 1; i >= 0; i--)
+                {
+                    var answer = item.Answers[i];
+                }
+            }
+            #endregion 更新问题
+        }
+
+        /// <summary>
+        /// 获取合并的数据。
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TDest"></typeparam>
+        /// <typeparam name="TKey"></typeparam>
+        /// <param name="srcs"></param>
+        /// <param name="dests"></param>
+        /// <param name="srcKey">从集合的元素中提取key,key不可重复。</param>
+        /// <param name="destKey">从集合的元素中提取key,key不可重复。</param>
+        /// <param name="removes">应移除的对象，null则忽略此参数。</param>
+        /// <param name="adds">应增加的对象，null则忽略此参数。</param>
+        /// <param name="modifies">应修改的对象，null则忽略此参数。</param>
+        /// <exception cref="ArgumentException">从集合的元素中提取key,key不可重复。</exception>
+        static public void Merge<TSource, TDest, TKey>(IEnumerable<TDest> srcs, IEnumerable<TSource> dests, Func<TDest, TKey> srcKey, Func<TSource, TKey> destKey,
+            ICollection<TSource> removes, ICollection<TDest> adds, ICollection<Tuple<TSource, TDest>> modifies)
+        {
+            var intersectKeys = dests.Join(srcs, destKey, srcKey, (l, r) => Tuple.Create(l, r)).ToDictionary(c => destKey(c.Item1));  //重合的key集合
+            modifies?.AddRange(intersectKeys.Values);  //生成更新对象集合
+            removes?.AddRange(dests.Where(c => !intersectKeys.ContainsKey(destKey(c)))); //生成删除对象集合
+            adds?.AddRange(srcs.Where(c => !intersectKeys.ContainsKey(srcKey(c))));   //生成追加对象集合
+        }
+
+        /// <summary>
+        /// 初始化症状数据。
+        /// </summary>
         /// <param name="context"></param>
         /// <param name="signsFileName">症状数据的文件名，如"~/content/xxx/xxx1.txt"</param>
         /// <param name="algorithmType"></param>

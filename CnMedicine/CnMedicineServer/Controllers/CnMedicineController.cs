@@ -7,6 +7,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Entity;
 using System.Data.Entity.Migrations;
 using System.Diagnostics;
 using System.IO;
@@ -111,7 +112,7 @@ namespace CnMedicineServer.Controllers
         static Lazy<HttpClient> _LazyTestHttpClient = new Lazy<HttpClient>(() =>
         {
             var result = new HttpClient();
-            result.BaseAddress = new Uri("http://39.104.89.104:7080");
+            result.BaseAddress = new Uri("http://39.104.21.25:7080");
             result.DefaultRequestHeaders.Accept.Clear();
             result.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
@@ -295,11 +296,38 @@ namespace CnMedicineServer.Controllers
             */
         }
 
+        private void UpdateEntityCollection<T, TKey>(IList<T> collection, ICollection<T> src, Func<T, TKey> getKey, DbContext db = null) where T : class
+        {
+            db = db ?? DbContext;
+            var destIds = collection.Select(c => getKey(c)).ToArray();
+            var srcIds = src.Select(c => getKey(c)).ToArray();
+
+            //更改
+            var modifies = src.Join(collection, c => getKey(c), c => getKey(c), (l, r) => new { src = l, dest = r });
+            foreach (var item in modifies)
+            {
+                db.Entry(item.dest).CurrentValues.SetValues(item.src);
+            }
+
+            //增加
+            var adds = srcIds.Except(destIds).Join(src, c => c, c => getKey(c), (l, r) => r);
+            collection.AddRange(adds);
+
+            //删除
+            var removes = destIds.Except(srcIds).Join(collection, c => c, c => getKey(c), (l, r) => r).ToArray();
+            db.Set<T>().RemoveRange(removes);
+            //移除未联动删除的对象
+            foreach (var item in removes)
+            {
+                collection.Remove(item);
+            }
+        }
+
         /// <summary>
         /// 设置或追加调查数据。
         /// 注释：没用Put,为通用性用Post。轶事:我居然听过前端告诉我没用过Put,不会。
         /// </summary>
-        /// <param name="model">其中各对象的Id设置为全0，标识添加。</param>
+        /// <param name="model">其中各对象的Id设置为全0，"00000000-0000-0000-0000-000000000000"，表示添加。</param>
         /// <returns>200时返回一个结论对象。DebugMessage目前仅调试用。</returns>
         [Route("SetSurveys")]
         [HttpPost]
@@ -310,28 +338,59 @@ namespace CnMedicineServer.Controllers
             {
                 return BadRequest(ModelState);
             }
-            if (string.IsNullOrWhiteSpace(model.UserId))
-                return BadRequest("UserId不可为空。");
+
             //var collx = ThingEntityBase.LoadThingPropertyItemsAsync(DbContext, DbContext.Surveys.Where(c=>c.Id!=Guid.Empty)).Result;
+            var db = DbContext;
+            //{
+            //    var to = new Surveys() {UserId="xxx",TemplateId=new Guid("d4817276-153d-4c90-ab33-23f70c20cc33"), };
+            //    to.ThingPropertyItems.Add(new ThingPropertyItem() { Name = "test1", Value = "tv1" });
+            //    db.Surveys.Add(to);
+            //    db.SaveChanges();
+            //    var et = db.Entry(to);
+            //    var ss = et.Collection(c => c.ThingPropertyItems);
+            //}
+            model.SurveysAnswers?.ForEach(c =>
+            {
+                c.GeneratedIdIfEmpty();
+                if (c.SurveysId == Guid.Empty)
+                    c.SurveysId = model.Id;
+            });
+            var innerModel = model;
+            if (Guid.Empty == model.Id)   //若试图添加
+            {
+                innerModel.GeneratedIdIfEmpty();
+                db.Surveys.Add(innerModel);
+            }
+            else  //若试图更改
+            {
+                innerModel = db.Surveys.Find(model.Id);
+                if (null == innerModel)    //若没有找到
+                {
+                    return BadRequest($"未找到试图修改的对象，Id={model.Id},若需添加对象请将Id设置为全0");
+                }
+                innerModel.LoadThingPropertyItemsAsync(db).Wait();
+                innerModel.LoadPictures(db);
+                var entity = db.Entry(innerModel);
+                entity.CurrentValues.SetValues(model);
+                UpdateEntityCollection(innerModel.SurveysAnswers, model.SurveysAnswers, c => c.Id);
+                model.ThingPropertyItems.ForEach(c => { c.GeneratedIdIfEmpty(); c.ThingEntityId = model.Id; });
+                UpdateEntityCollection(innerModel.ThingPropertyItems, model.ThingPropertyItems, c => c.Id);
+                innerModel.SaveThingPropertyItemsAsync(db).Wait();
+                db.SaveChanges();
+                //entity.Collection(e => e.SurveysAnswers).CurrentValue.AddRange(model.SurveysAnswers);
+                //entity.Collection(e => e.SurveysAnswers).CurrentValue = model.SurveysAnswers;
+            }
             try
             {
-                model.GeneratedIdIfEmpty();
-                foreach (var item in model.SurveysAnswers)
-                {
-                    item.GeneratedIdIfEmpty();
-                    if (item.SurveysId == Guid.Empty)
-                        item.SurveysId = model.Id;
-                }
 
-                var last = GetLastSurveysCore(model.UserId);
+                var last = GetLastSurveysCore(innerModel.UserId);
                 if (null != last)
-                    model.UserState = "复诊1";
+                    innerModel.UserState = "复诊1";
                 else
-                    model.UserState = "复诊0";
-                DbContext.Surveys.AddOrUpdate(model);
-                model.SaveThingPropertyItemsAsync(DbContext).Wait();
+                    innerModel.UserState = "复诊0";
+                innerModel.SaveThingPropertyItemsAsync(DbContext).Wait();
 
-                var strName = DbContext.SurveysTemplates.Find(model.TemplateId)?.Name;
+                var strName = DbContext.SurveysTemplates.Find(innerModel.TemplateId)?.Name;
                 CnMedicineAlgorithmBase algs;
                 SurveysConclusion result = null;
                 try
@@ -340,18 +399,18 @@ namespace CnMedicineServer.Controllers
                     {
                         case "失眠":
                             algs = new InsomniaAlgorithm();
-                            result = algs.GetResult(model, DbContext);
+                            result = algs.GetResult(innerModel, DbContext);
                             break;
                         case "鼻炎":
                             algs = new RhinitisAlgorithm();
-                            result = algs.GetResult(model, DbContext);
+                            result = algs.GetResult(innerModel, DbContext);
                             break;
 
                         default:
-                            if (AllAlgorithmTypes.TryGetValue(model.TemplateId, out Type type))
+                            if (AllAlgorithmTypes.TryGetValue(innerModel.TemplateId, out Type type))
                             {
                                 algs = TypeDescriptor.CreateInstance(null, type, null, null) as CnMedicineAlgorithmBase;
-                                result = algs.GetResult(model, DbContext);
+                                result = algs.GetResult(innerModel, DbContext);
                             }
                             break;
                     }
@@ -365,14 +424,13 @@ namespace CnMedicineServer.Controllers
                 result.SaveThingPropertyItemsAsync(DbContext).Wait();
                 //写入图片
                 result?.Surveys?.SavePictures(DbContext);
-                model.ConclusionId = result.Id;
+                innerModel.ConclusionId = result.Id;
 
-                DbContext.SaveChanges();
                 try
                 {
                     var client = GetHttpClient();
 
-                    var guts = new SaveConclusioModel(model, result, DbContext);
+                    var guts = new SaveConclusioModel(innerModel, result, DbContext);
                     result.SaveThingPropertyItemsAsync(DbContext).Wait();
                     var response = client.PostAsJsonAsync(_SaveConclusionPath, guts).Result;
                     response.EnsureSuccessStatusCode();
@@ -391,7 +449,7 @@ namespace CnMedicineServer.Controllers
             }
             catch (Exception err)
             {
-                return InternalServerError(err);
+                return BadRequest(err.Message);
             }
         }
 
@@ -462,7 +520,7 @@ namespace CnMedicineServer.Controllers
         [ResponseType(typeof(SurveysConclusion))]
         public IHttpActionResult SetSurveysWithNumbers(List<int> model, Guid templateId)
         {
-            Surveys answers = new Surveys() { TemplateId = templateId, UserId = "BySetSurveysWithNumbers" };
+            Surveys answers = new Surveys() { TemplateId = templateId, UserId = "BySetSurveysWithNumbers", Id = Guid.Empty };
             answers.ThingPropertyItems.Add(new ThingPropertyItem()
             {
                 Name = "PreId",

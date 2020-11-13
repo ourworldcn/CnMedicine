@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Web;
@@ -60,7 +61,7 @@ namespace CnMedicineServer.Models
                 Sex = surveys.SurveysAnswers.FirstOrDefault(c => c.TemplateId == question.Id)?.Guts;
             }
             //写入方剂Id
-            var idTp = surveys.ThingPropertyItems.FirstOrDefault(c => c.Name == "prescriptionId");
+            var idTp = surveys.ThingPropertyItems.FirstOrDefault(c => c.Name == "PrescriptionId");
             PrescriptionId = idTp?.Value;
             //写入方剂数据
 

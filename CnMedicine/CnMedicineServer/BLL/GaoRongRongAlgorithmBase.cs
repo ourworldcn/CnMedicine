@@ -73,6 +73,9 @@ namespace CnMedicineServer.Bll
 
     }
 
+    /// <summary>
+    /// 高荣荣医师算法基类。
+    /// </summary>
     public abstract class GaoRonrongAlgorithmBase : CnMedicineAlgorithmBase
     {
         public GaoRonrongAlgorithmBase()

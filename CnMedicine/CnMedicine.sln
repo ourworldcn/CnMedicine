@@ -25,6 +25,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "鼻炎资料", "鼻炎资�
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OwEntityFramework", "OwEntityFramework\OwEntityFramework.csproj", "{02E02B13-EEA4-4C08-AE0C-A4C66DC64233}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CnMedicineTools", "CnMedicineTools\CnMedicineTools.csproj", "{E2EBCF12-3982-4578-9C50-BAF8F6686CE1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +45,10 @@ Global
 		{02E02B13-EEA4-4C08-AE0C-A4C66DC64233}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{02E02B13-EEA4-4C08-AE0C-A4C66DC64233}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{02E02B13-EEA4-4C08-AE0C-A4C66DC64233}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2EBCF12-3982-4578-9C50-BAF8F6686CE1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2EBCF12-3982-4578-9C50-BAF8F6686CE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2EBCF12-3982-4578-9C50-BAF8F6686CE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2EBCF12-3982-4578-9C50-BAF8F6686CE1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

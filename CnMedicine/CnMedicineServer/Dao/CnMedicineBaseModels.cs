@@ -217,8 +217,8 @@ namespace CnMedicineServer.Models
     public class GrrBianZhengFenXingBase : CnMedicineLogicBase
     {
         /*
-         * 分型组号	分型号	编号	阈值	最低阈值	方药
-         * 10	101	"1602,1301,3104,5205,2202,3706,3703,3502,3113,4407,4416。"	0.65	0.3	陈皮20，柴胡18，川芎15，香附20，枳壳12，白芍12，炙甘草6，川楝子10，郁金10，木香20，酸枣仁10。
+         * 分组号	分型号	症状编号	阈值	最低阈值	方剂号	方药		备注
+         * 10	101	"1001*21,1101,1109,1118,1111,1114,5406,5203,3508,3402,1119,1115,5353,10009,4414。"	0.6	0.3	0	苍术15黄芪15黄柏15牛膝10百部10白芷15砂仁后下15陈皮15炙甘草5法半夏10茯苓15生姜10		方药1用法：水煎30分钟坐浴熏洗外阴及冲洗阴道，月经结束后连续用药7-14天
          * */
 
         /// <summary>
@@ -280,6 +280,13 @@ namespace CnMedicineServer.Models
         [DataMember]
         [TextFieldName("最低阈值")]
         public virtual float ThresholdsOfLowest { get; set; }
+
+        /// <summary>
+        /// 方剂号。
+        /// </summary>
+        [DataMember]
+        [TextFieldName("方剂号")]
+        public virtual int PrescriptionNumber { get; set; } = 0;
 
         /// <summary>
         /// 药物。

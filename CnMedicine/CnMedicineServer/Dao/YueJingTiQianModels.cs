@@ -3,6 +3,8 @@ using System.Runtime.Serialization;
 
 namespace CnMedicineServer.Models
 {
+    #region 月经提前
+
     [DataContract]
     public class YueJingTiQianFenXing : GrrBianZhengFenXingBase
     {
@@ -34,6 +36,10 @@ namespace CnMedicineServer.Models
         {
         }
     }
+
+    #endregion 月经提前
+
+    #region 月经错后
 
     [DataContract]
     public class YueJingCuoHouFenXing : GrrBianZhengFenXingBase
@@ -67,6 +73,10 @@ namespace CnMedicineServer.Models
         }
     }
 
+    #endregion 月经错后
+
+    #region 月经不定
+
     [DataContract]
     public class YueJingBuDingQiFenXing : GrrBianZhengFenXingBase
     {
@@ -98,5 +108,43 @@ namespace CnMedicineServer.Models
         {
         }
     }
+
+    #endregion 月经不定
+
+    #region 月经延长
+
+    [DataContract]
+    public class YueJingYanChangFenXing : GrrBianZhengFenXingBase
+    {
+        public YueJingYanChangFenXing()
+        {
+        }
+    }
+
+    [DataContract]
+    public class YueJingYanChangJingLuoBian : GrrJingLuoBianZhengBase
+    {
+        public YueJingYanChangJingLuoBian()
+        {
+        }
+    }
+
+    [DataContract]
+    public class YueJingYanChangGeneratedNumeber : GeneratedNumeber
+    {
+        public YueJingYanChangGeneratedNumeber()
+        {
+        }
+    }
+
+    [DataContract]
+    public class YueJingYanChangCnDrugCorrection : CnDrugCorrectionBase
+    {
+        public YueJingYanChangCnDrugCorrection()
+        {
+        }
+    }
+
+    #endregion 月经延长
 
 }

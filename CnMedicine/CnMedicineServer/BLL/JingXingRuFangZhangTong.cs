@@ -290,7 +290,7 @@ namespace CnMedicineServer.Bll
             SetCnPrescriptiones(result, data.Results);
 
             if (string.IsNullOrWhiteSpace(result.Conclusion))
-                result.Conclusion = "(您输入的症状暂无对应药方，请联系医生。)";
+                result.Conclusion = "(患者身体健康，无需用药。)";
             return result;
         }
     }

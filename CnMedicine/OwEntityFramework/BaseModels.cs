@@ -499,6 +499,7 @@ namespace OW.Data.Entity
 
         List<ThingPropertyItem> _ThingPropertyItems;
 
+
         /// <summary>
         /// 描述事物某个属性的对象。这个对象记录的信息服务器不加理解，仅供使用接口的程序使用。
         /// </summary>
@@ -545,13 +546,14 @@ namespace OW.Data.Entity
         /// 异步获取该实体对象的附属扩展信息。
         /// </summary>
         /// <param name="context"></param>
+        /// <param name="bForce">是否强制调入。</param>
         /// <returns></returns>
-        public Task LoadThingPropertyItemsAsync(DbContext context)
+        public Task LoadThingPropertyItemsAsync(DbContext context, bool bForce = false)
         {
             return context.Set<ThingPropertyItem>().Where(c => c.ThingEntityId == Id).ToListAsync().ContinueWith(c =>
             {
                 ThingPropertyItems = c.Result;
-            }, TaskContinuationOptions.OnlyOnRanToCompletion);
+            }, TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously);
         }
 
         /// <summary>

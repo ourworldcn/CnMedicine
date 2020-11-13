@@ -421,7 +421,7 @@ namespace OW.Data.Entity
         [DataMember]
         [MaxLength(128)]
         [Index]
-        [Required]
+        [Required(AllowEmptyStrings =false)]
         public string UserId { get; set; }
 
         /// <summary>

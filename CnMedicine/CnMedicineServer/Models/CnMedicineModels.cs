@@ -91,6 +91,9 @@ namespace CnMedicineServer.Models
         [DataMember(IsRequired = true, Name = "userId")]
         public string UserId { get; set; }
 
+        [DataMember(IsRequired = false, Name = "bingYin")]
+        public string BingYin { get; set; }
+
         /// <summary>
         /// 调查问卷的模板Id。
         /// </summary>

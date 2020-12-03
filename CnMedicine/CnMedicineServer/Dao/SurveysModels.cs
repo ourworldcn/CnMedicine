@@ -28,6 +28,29 @@ namespace OW.Data.Entity
         {
         }
 
+        /// <summary>
+        /// 获取合并的数据。
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TDest"></typeparam>
+        /// <typeparam name="TKey"></typeparam>
+        /// <param name="dests"></param>
+        /// <param name="srcs"></param>
+        /// <param name="destKeyCreator">从集合的元素中提取key,key不可重复。</param>
+        /// <param name="srcKeyCreator">从集合的元素中提取key,key不可重复。</param>
+        /// <param name="removes">应移除的对象，null则忽略此参数。</param>
+        /// <param name="adds">应增加的对象，null则忽略此参数。</param>
+        /// <param name="modifies">应修改的对象，null则忽略此参数。</param>
+        /// <exception cref="ArgumentException">从集合的元素中提取key,key不可重复。</exception>
+        static public void GetMergeInfo<TSource, TDest, TKey>(this IEnumerable<TDest> dests, IEnumerable<TSource> srcs, Func<TDest, TKey> destKeyCreator, Func<TSource, TKey> srcKeyCreator,
+            ICollection<TDest> removes, ICollection<TSource> adds, ICollection<Tuple<TSource, TDest>> modifies)
+        {
+            var intersectKeys = dests.Join(srcs, destKeyCreator, srcKeyCreator, (dest, src) => Tuple.Create(src, dest)).ToDictionary(c => destKeyCreator(c.Item2));  //重合的key集合
+            modifies?.AddRange(intersectKeys.Values);  //生成更新对象集合
+            removes?.AddRange(dests.Where(c => !intersectKeys.ContainsKey(destKeyCreator(c)))); //生成删除对象集合
+            adds?.AddRange(srcs.Where(c => !intersectKeys.ContainsKey(srcKeyCreator(c))));   //生成追加对象集合
+        }
+
     }
 
     public class MyValidation : ValidationAttribute
@@ -248,6 +271,7 @@ namespace OW.Data.Entity
                 UserState = obj.UserState,
             };
         }
+
     }
 
     /// <summary>
@@ -421,7 +445,7 @@ namespace OW.Data.Entity
         [DataMember]
         [MaxLength(128)]
         [Index]
-        [Required(AllowEmptyStrings =false)]
+        [Required(AllowEmptyStrings = false)]
         public string UserId { get; set; }
 
         /// <summary>
@@ -429,6 +453,7 @@ namespace OW.Data.Entity
         /// </summary>
         [DataMember]
         public Guid? ConclusionId { get; set; }
+
     }
 
     /// <summary>

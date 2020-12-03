@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data.Entity;
 using System.Data.Entity.Migrations;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -208,84 +209,37 @@ namespace CnMedicineServer.Bll
             var questions = surveysTemplate.Questions;    //问题对象集合
             #endregion 处理问卷模板对象
 
-            var coll = (from tmp in signs
-                        group tmp by tmp.Question);
-            var srcs = coll.ToDictionary(c => c.Key, c => c.ToArray());   //按问题分组
-            var intersectQuestions = new HashSet<string>(srcs.Keys.Intersect(questions.Select(c => c.QuestionTitle)));   //重合的问题
+            var srcColl = (from tmp in signs
+                           group tmp by tmp.Question).ToArray();
 
-            #region 删除已经不存在的问题
-            var removeQuestions = questions.Where(c => !intersectQuestions.Contains(c.QuestionTitle)).ToArray();    //应该删除的问题对象
-            context.Set<SurveysQuestionTemplate>().RemoveRange(removeQuestions);
-            #endregion 删除已经不存在的问题
+            #region 处理问题对象
 
-            #region 加入新问题
-            var addQuestions = signs.Where(c => !intersectQuestions.Contains(c.Question)).GroupBy(c => c.Question).Select(c =>
+            List<SurveysQuestionTemplate> removes = new List<SurveysQuestionTemplate>();
+            List<IGrouping<string, CnMedicineSignsBase>> adds = new List<IGrouping<string, CnMedicineSignsBase>>();
+            List<Tuple<IGrouping<string, CnMedicineSignsBase>, SurveysQuestionTemplate>> modifies = new List<Tuple<IGrouping<string, CnMedicineSignsBase>, SurveysQuestionTemplate>>();
+            questions.GetMergeInfo(srcColl, c => c.QuestionTitle, c => c.Key, removes, adds, modifies);
+            //删除问题对象
+            context.Set<SurveysQuestionTemplate>().RemoveRange(removes);
+            //增加问题对象
+            List<SurveysAnswerTemplate> removedAnswers = new List<SurveysAnswerTemplate>();
+            surveysTemplate.Questions.AddRange(adds.Select(c =>
             {
-                SurveysQuestionTemplate sqt = new SurveysQuestionTemplate()
+                var sqt = new SurveysQuestionTemplate()
                 {
-                    Kind = c.First().QuestionsKind,
-                    IdNumber = c.First().Number,
-                    QuestionTitle = c.Key,
-                    UserState = "",
-                    OrderNum = c.First().OrderNum,
+                    SurveysTemplateId = surveysTemplate.Id,
                 };
-                sqt.Answers = c.Select(subc =>
-                {
-                    SurveysAnswerTemplate sat = new SurveysAnswerTemplate()
-                    {
-                        AnswerTitle = subc.ZhengZhuang,
-                        IdNumber = subc.Number,
-                        UserState = $"编号{subc.Number}",
-                        DisplayConditions = subc.DisplayContions,
-                        OrderNum = subc.OrderNum,
-                    };
-                    return sat;
-                }).ToList();
+                sqt.Merge(c, removedAnswers);
                 return sqt;
-            });
-            surveysTemplate.Questions.AddRange(addQuestions);            //应加入的问题对象
-            #endregion 加入新问题
-
-            #region 更新问题
-            foreach (var item in questions.Where(c => intersectQuestions.Contains(c.QuestionTitle)).ToArray())    //逐一遍历需要更新的问题对象
+            }));
+            //更新问题对象
+            foreach (var item in modifies)
             {
-                var src = srcs[item.QuestionTitle];
-                item.Kind = src.First().QuestionsKind;
-                item.IdNumber = src.First().Number;
-                item.UserState = "";
-                item.OrderNum = src.First().OrderNum;
-                //处理答案对象的合并事宜
-                //删除答案对象
-
-                for (int i = item.Answers.Count - 1; i >= 0; i--)
-                {
-                    var answer = item.Answers[i];
-                }
+                item.Item2.Merge(item.Item1, removedAnswers);
             }
-            #endregion 更新问题
-        }
+            context.Set<SurveysAnswerTemplate>().RemoveRange(removedAnswers);
 
-        /// <summary>
-        /// 获取合并的数据。
-        /// </summary>
-        /// <typeparam name="TSource"></typeparam>
-        /// <typeparam name="TDest"></typeparam>
-        /// <typeparam name="TKey"></typeparam>
-        /// <param name="srcs"></param>
-        /// <param name="dests"></param>
-        /// <param name="srcKey">从集合的元素中提取key,key不可重复。</param>
-        /// <param name="destKey">从集合的元素中提取key,key不可重复。</param>
-        /// <param name="removes">应移除的对象，null则忽略此参数。</param>
-        /// <param name="adds">应增加的对象，null则忽略此参数。</param>
-        /// <param name="modifies">应修改的对象，null则忽略此参数。</param>
-        /// <exception cref="ArgumentException">从集合的元素中提取key,key不可重复。</exception>
-        static public void Merge<TSource, TDest, TKey>(IEnumerable<TDest> srcs, IEnumerable<TSource> dests, Func<TDest, TKey> srcKey, Func<TSource, TKey> destKey,
-            ICollection<TSource> removes, ICollection<TDest> adds, ICollection<Tuple<TSource, TDest>> modifies)
-        {
-            var intersectKeys = dests.Join(srcs, destKey, srcKey, (l, r) => Tuple.Create(l, r)).ToDictionary(c => destKey(c.Item1));  //重合的key集合
-            modifies?.AddRange(intersectKeys.Values);  //生成更新对象集合
-            removes?.AddRange(dests.Where(c => !intersectKeys.ContainsKey(destKey(c)))); //生成删除对象集合
-            adds?.AddRange(srcs.Where(c => !intersectKeys.ContainsKey(srcKey(c))));   //生成追加对象集合
+            surveysTemplate.Questions.AddRange(adds.Select(c => new SurveysQuestionTemplate()));
+            #endregion 处理问题对象
         }
 
         /// <summary>
@@ -312,6 +266,8 @@ namespace CnMedicineServer.Bll
                 var fileName = Path.GetFileName(fullPath);
                 signs = tdb.GetList<CnMedicineSignsBase>(fileName);
             }
+            InitializeCore2(context, signs, algorithmType);
+            return;
             //初始化调查模板项
             var surveysTemplate = new SurveysTemplate()
             {
@@ -549,6 +505,64 @@ namespace CnMedicineServer.Bll
         {
             if (null == template)
                 template = new SurveysTemplate();
+        }
+
+        /// <summary>
+        /// 将指定的 CnMedicineSignsBase 对象的集合组合并到当前的 SurveysQuestionTemplate 中。
+        /// </summary>
+        /// <param name="surveysQuestionTemplate"></param>
+        /// <param name="signs">调试状态下若不是同一个问题的数据项会引发断言异常。发布状态下会导致未知问题。</param>
+        /// <param name="removedAnswers">返回时移除的答案项将被添加到此参数(此参数已有元素不会改变)，如果为null,则忽略此参数。</param>
+        public static void Merge(this SurveysQuestionTemplate surveysQuestionTemplate, IEnumerable<CnMedicineSignsBase> signs, List<SurveysAnswerTemplate> removedAnswers = null)
+        {
+            var first = signs.First();
+            Debug.Assert(signs.All(c => c.Question == first.Question)); //确定所有sign都是同一个问题的数据项
+            surveysQuestionTemplate.Kind = first.QuestionsKind;
+            surveysQuestionTemplate.IdNumber = first.Number;
+            surveysQuestionTemplate.QuestionTitle = first.Question;
+            surveysQuestionTemplate.UserState = "";
+            surveysQuestionTemplate.OrderNum = first.OrderNum;
+            surveysQuestionTemplate.Description = first.Description;
+            surveysQuestionTemplate.DisplayConditions = first.DisplayContions;
+            if (null == surveysQuestionTemplate.Answers)
+                surveysQuestionTemplate.Answers = new List<SurveysAnswerTemplate>();
+
+            List<SurveysAnswerTemplate> removes = new List<SurveysAnswerTemplate>();
+            List<CnMedicineSignsBase> adds = new List<CnMedicineSignsBase>();
+            List<Tuple<CnMedicineSignsBase, SurveysAnswerTemplate>> modifies = new List<Tuple<CnMedicineSignsBase, SurveysAnswerTemplate>>();
+            surveysQuestionTemplate.Answers.GetMergeInfo(signs, c => c.AnswerTitle, c => c.ZhengZhuang, removes, adds, modifies);
+            //删除答案对象
+            removedAnswers?.AddRange(removes);
+            foreach (var item in removes)
+                surveysQuestionTemplate.Answers.Remove(item);
+            //增加新答案对象
+            surveysQuestionTemplate.Answers.AddRange(adds.Select(c =>
+            {
+                SurveysAnswerTemplate sat = new SurveysAnswerTemplate() { SurveysQuestionTemplateId = surveysQuestionTemplate.Id };
+                sat.Merge(c);
+                return sat;
+            }));
+            //更新答案对象
+            foreach (var item in modifies)
+            {
+                var dest = item.Item2;
+                var src = item.Item1;
+                dest.Merge(src);
+            }
+        }
+
+        /// <summary>
+        /// 将指定的 CnMedicineSignsBase 对象组合并到当前的 SurveysAnswerTemplate 中。
+        /// </summary>
+        /// <param name="surveysAnswerTemplate"></param>
+        /// <param name="sign"></param>
+        public static void Merge(this SurveysAnswerTemplate surveysAnswerTemplate, CnMedicineSignsBase sign = null)
+        {
+            surveysAnswerTemplate.AnswerTitle = sign.ZhengZhuang;
+            surveysAnswerTemplate.IdNumber = sign.Number;
+            surveysAnswerTemplate.UserState = $"编号{sign.Number}";
+            surveysAnswerTemplate.DisplayConditions = sign.DisplayContions;
+            surveysAnswerTemplate.OrderNum = sign.OrderNum;
         }
     }
 

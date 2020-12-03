@@ -14,7 +14,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Json;
+using System.ServiceModel.Channels;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -69,6 +71,19 @@ namespace HelpTest
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            var attrs = Attribute.GetCustomAttributes(GetType().Assembly);
+            BufferManager bufferManager = BufferManager.CreateBufferManager(1024, 1);
+
+            var buff1 = bufferManager.TakeBuffer(1);
+            var buff2 = bufferManager.TakeBuffer(2);
+            buff2 = bufferManager.TakeBuffer(2);
+            buff2 = bufferManager.TakeBuffer(2);
+            buff2 = bufferManager.TakeBuffer(2);
+            buff2 = bufferManager.TakeBuffer(2);
+            buff2 = bufferManager.TakeBuffer(2);
+            buff2 = bufferManager.TakeBuffer(2);
+            buff2 = bufferManager.TakeBuffer(2);
+            return;
             CnPrescription prescription = new CnPrescription()
             {
                 Name = "方剂1",

@@ -327,6 +327,14 @@ namespace CnMedicineServer.Models
             }
         }
 
+        [DataMember]
+        [TextFieldName("分型诊断")]
+        public virtual string ZhengDuan { get; set; }
+
+        [DataMember]
+        [TextFieldName("病因分析")]
+        public virtual string FenXi { get; set; }
+
         public override int GetHashCode()
         {
             return base.GetHashCode();
@@ -441,6 +449,10 @@ namespace CnMedicineServer.Models
         [TextFieldName("阈值")]
         [DataMember]
         public virtual float Thresholds { get; set; }
+
+        [DataMember]
+        [TextFieldName("经络病因")]
+        public virtual string BingYin { get; set; }
 
     }
 

@@ -84,6 +84,12 @@ namespace OW.Data.Entity
 
         string _Path;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
         public virtual List<T> GetList<T>(string fileName) where T : new()
         {
             string fullPath = Path.Combine(_Path, fileName);

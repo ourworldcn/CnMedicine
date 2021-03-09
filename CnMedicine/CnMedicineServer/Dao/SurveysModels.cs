@@ -6,6 +6,7 @@ using System.Data.Entity;
 using System.Data.Entity.Migrations;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Text;
 
 namespace OW.Data.Entity
 {
@@ -31,26 +32,70 @@ namespace OW.Data.Entity
         /// <summary>
         /// 获取合并的数据。
         /// </summary>
-        /// <typeparam name="TSource"></typeparam>
-        /// <typeparam name="TDest"></typeparam>
+        /// <typeparam name="TRight"></typeparam>
+        /// <typeparam name="TLeft"></typeparam>
         /// <typeparam name="TKey"></typeparam>
-        /// <param name="dests"></param>
-        /// <param name="srcs"></param>
-        /// <param name="destKeyCreator">从集合的元素中提取key,key不可重复。</param>
-        /// <param name="srcKeyCreator">从集合的元素中提取key,key不可重复。</param>
-        /// <param name="removes">应移除的对象，null则忽略此参数。</param>
-        /// <param name="adds">应增加的对象，null则忽略此参数。</param>
-        /// <param name="modifies">应修改的对象，null则忽略此参数。</param>
+        /// <param name="lefts"></param>
+        /// <param name="leftKeyCreator">从集合的元素中提取key,key不可重复。</param>
+        /// <param name="rights"></param>
+        /// <param name="rightKeyCreator">从集合的元素中提取key,key不可重复。</param>
+        /// <param name="leftOnly">应移除的对象，null则忽略此参数。</param>
+        /// <param name="rightOnly">应增加的对象，null则忽略此参数。</param>
+        /// <param name="overlaps">应修改的对象，null则忽略此参数。</param>
+        /// <param name="compare">若省略或为null，则使用默认比较器。当前版本保留未用，可忽略。</param>
         /// <exception cref="ArgumentException">从集合的元素中提取key,key不可重复。</exception>
-        static public void GetMergeInfo<TSource, TDest, TKey>(this IEnumerable<TDest> dests, IEnumerable<TSource> srcs, Func<TDest, TKey> destKeyCreator, Func<TSource, TKey> srcKeyCreator,
-            ICollection<TDest> removes, ICollection<TSource> adds, ICollection<Tuple<TSource, TDest>> modifies)
+        static public void GetMergeInfo<TLeft, TRight, TKey>(this IEnumerable<TLeft> lefts, Func<TLeft, TKey> leftKeyCreator, IEnumerable<TRight> rights, Func<TRight, TKey> rightKeyCreator,
+            ICollection<TLeft> leftOnly, ICollection<TRight> rightOnly, ICollection<Tuple<TRight, TLeft>> overlaps, IComparer<TKey> compare = null)
         {
-            var intersectKeys = dests.Join(srcs, destKeyCreator, srcKeyCreator, (dest, src) => Tuple.Create(src, dest)).ToDictionary(c => destKeyCreator(c.Item2));  //重合的key集合
-            modifies?.AddRange(intersectKeys.Values);  //生成更新对象集合
-            removes?.AddRange(dests.Where(c => !intersectKeys.ContainsKey(destKeyCreator(c)))); //生成删除对象集合
-            adds?.AddRange(srcs.Where(c => !intersectKeys.ContainsKey(srcKeyCreator(c))));   //生成追加对象集合
+            if (null == compare)
+                compare = Comparer<TKey>.Default;
+            var intersectKeys = lefts.Join(rights, leftKeyCreator, rightKeyCreator, (dest, src) => Tuple.Create(src, dest)).ToDictionary(c => leftKeyCreator(c.Item2));  //重合的key集合
+            overlaps?.AddRange(intersectKeys.Values);  //生成更新对象集合
+            leftOnly?.AddRange(lefts.Where(c => !intersectKeys.ContainsKey(leftKeyCreator(c)))); //生成删除对象集合
+            rightOnly?.AddRange(rights.Where(c => !intersectKeys.ContainsKey(rightKeyCreator(c))));   //生成追加对象集合
         }
 
+        static public string GetTextWithJson(this Surveys surveys, IEnumerable<SurveysQuestionTemplate> questionTemplates, IEnumerable<SurveysAnswerTemplate> answerTemplates)
+        {
+            StringBuilder sb = new StringBuilder();
+            var answers1 = from tmp in surveys.SurveysAnswers
+                           join tmp1 in answerTemplates //直接绑定到答案项
+                           on tmp.TemplateId equals tmp1.Id
+                           select ValueTuple.Create(tmp1.SurveysQuestionTemplate, tmp1, tmp);
+            var answers2 = from tmp in surveys.SurveysAnswers
+                           join tmp1 in questionTemplates
+                           on tmp.TemplateId equals tmp1.Id
+                           select ValueTuple.Create<SurveysQuestionTemplate, SurveysAnswerTemplate, SurveysAnswer>(tmp1, null, tmp);
+            var coll = from tmp in answers1.Concat(answers2)
+                       group tmp by tmp.Item1.Id into g
+                       select ValueTuple.Create(g.First().Item1.QuestionTitle, g.Select(c => null != c.Item2 ? c.Item2.AnswerTitle : c.Item3.Guts));
+            sb.AppendLine("[");
+            foreach (var question in coll)
+            {
+                sb.AppendLine("{");
+                //问题
+                sb.Append("\t\"question\":\"");
+                sb.Append(question.Item1 ?? string.Empty);
+                sb.AppendLine("\",");
+                //答案
+                sb.Append("\t\"answer\":[");
+                if (question.Item2.Any())
+                {
+                    sb.Append('"');
+                    sb.Append(string.Join("\",\"", question.Item2));
+                    sb.Append('"');
+                }
+                sb.AppendLine("]");
+                sb.AppendLine("},");
+            }
+            var length = Environment.NewLine.Length + 1;
+            if (sb.Length >= length && $",{Environment.NewLine}" == sb.ToString(sb.Length - length, length))
+            {
+                sb.Remove(sb.Length - length, 1);
+            }
+            sb.Append("]");
+            return sb.ToString();
+        }
     }
 
     public class MyValidation : ValidationAttribute

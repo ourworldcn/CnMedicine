@@ -437,10 +437,12 @@ namespace CnMedicineServer.Controllers
 
                     //向測試平臺發送數據
                     var testClient = GetHttpClient();
-                    GetTestHttpClient()?.PostAsJsonAsync(_TestSaveConclusionPath, guts);
+                    var testResponse = GetTestHttpClient()?.PostAsJsonAsync(_TestSaveConclusionPath, guts)?.Result;
+                    testResponse?.EnsureSuccessStatusCode();
                 }
                 catch (Exception err)
                 {
+                    Trace.TraceWarning("发送数据时出错——{0}", err.Message);
                     //TO DO
                 }
                 DbContext.SaveChanges();

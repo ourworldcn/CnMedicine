@@ -2,6 +2,7 @@
 using CnMedicineServer.Models;
 using OW.Data.Entity;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
@@ -68,7 +69,7 @@ namespace CnMedicineServer.Bll
             List<Tuple<string, decimal>> cnVisceral, List<Tuple<string, decimal>> cnPhenomenon,
             List<Tuple<string, decimal>> CnPathogen)
         {
-            HashSet<string> hsViscerals = new HashSet<string>(RhinitisConversion.DefaultCollection.SelectMany(c => c.CnVisceralProperties).Select(c => c.Item1));   
+            HashSet<string> hsViscerals = new HashSet<string>(RhinitisConversion.DefaultCollection.SelectMany(c => c.CnVisceralProperties).Select(c => c.Item1));
             //如果 collection 包含重复的元素，该集将包含一个唯一的每个元素。
             HashSet<string> hsPhenomenons = new HashSet<string>(RhinitisConversion.DefaultCollection.SelectMany(c => c.CnPhenomenonProperties).Select(c => c.Item1));
             HashSet<string> hsPathogens = new HashSet<string>(RhinitisConversion.DefaultCollection.SelectMany(c => c.CnPathogenProperties).Select(c => c.Item1));
@@ -208,8 +209,8 @@ namespace CnMedicineServer.Bll
             //一定要和第二分值比较，鼻炎取前两分值，并列第一时，取并列第一值，不再取第二值
             decimal sendVisceral = 0;
             if (visceralAry.Length > 1)
-            { 
-              sendVisceral = visceralAry[1]?.Item2 ?? 0;//第二个脏腑分 
+            {
+                sendVisceral = visceralAry[1]?.Item2 ?? 0;//第二个脏腑分 
             };
             if (sendVisceral == maxVisceral) //并列第一
             {
@@ -221,7 +222,7 @@ namespace CnMedicineServer.Bll
             }
 
 
-            
+
             //症候评分
             var PhenomenonScores = RhinitisConversions.SelectMany(c => c.CnPhenomenonProperties);
             var phenomennoAry = PhenomenonScores.GroupBy(c => c.Item1).Select(c => Tuple.Create(c.Key, c.Sum(c1 => c1.Item2))).OrderByDescending(c => c.Item2).ToArray();
@@ -273,10 +274,10 @@ namespace CnMedicineServer.Bll
                     //症候评分
                     var PathogenScores = RhinitisConversions.SelectMany(c => c.CnPathogenProperties);
                     var pathogennoAry = PathogenScores.GroupBy(c => c.Item1).Select(c => Tuple.Create(c.Key, c.Sum(c1 => c1.Item2))).OrderByDescending(c => c.Item2).ToArray();
-                    var maxathogen  = pathogennoAry.FirstOrDefault()?.Item2 ?? 0;//此处不用有最大值，有一个算一个
+                    var maxathogen = pathogennoAry.FirstOrDefault()?.Item2 ?? 0;//此处不用有最大值，有一个算一个
                     Pathogens = pathogennoAry.ToList();
 
-                    
+
                     foreach (var Pathogen in Pathogens)
                     {
                         switch (Pathogen.Item1)
@@ -294,12 +295,12 @@ namespace CnMedicineServer.Bll
                                 };
                                 break;
                             case "通窍":
-                                if (Pathogen.Item2  <6)
+                                if (Pathogen.Item2 < 6)
                                 {
                                     _RhinitisCnDrugPathogens.AddRange(RhinitisCnDrugPathogen.DefaultCollection.Where(c => c.MatchString == "4"));
                                 }
                                 else
-                                 {
+                                {
                                     _RhinitisCnDrugPathogens.AddRange(RhinitisCnDrugPathogen.DefaultCollection.Where(c => c.MatchString == "3"));
 
                                 };
@@ -455,12 +456,12 @@ namespace CnMedicineServer.Bll
                 if (null == _CnDrugBase)
                 {
                     var drugs = RhinitisCnDrugConversions;
-                    _CnDrugBase = new List<Tuple<string, decimal>>();                 
-                   
-                        var coll = RhinitisCnDrugConversions.SelectMany(c => c.CnDrugProperties).Concat(RhinitisCnDrugPathogens.SelectMany(c => c.CnDrugProperties))
-                            .GroupBy(c => c.Item1).Select(c => Tuple.Create(c.Key, c.Max(c1 => c1.Item2)));
-                        _CnDrugBase.AddRange(coll);
-                   
+                    _CnDrugBase = new List<Tuple<string, decimal>>();
+
+                    var coll = RhinitisCnDrugConversions.SelectMany(c => c.CnDrugProperties).Concat(RhinitisCnDrugPathogens.SelectMany(c => c.CnDrugProperties))
+                        .GroupBy(c => c.Item1).Select(c => Tuple.Create(c.Key, c.Max(c1 => c1.Item2)));
+                    _CnDrugBase.AddRange(coll);
+
                 }
                 return _CnDrugBase;
             }
@@ -477,7 +478,7 @@ namespace CnMedicineServer.Bll
             {
                 if (null == _CnDrugResult)
                 {
-                    var coll = CnDrugBase.Select(c => Tuple.Create(c.Item1, c.Item2 ));
+                    var coll = CnDrugBase.Select(c => Tuple.Create(c.Item1, c.Item2));
                     _CnDrugResult = new List<Tuple<string, decimal>>(coll);
                 }
                 return _CnDrugResult;
@@ -587,11 +588,12 @@ namespace CnMedicineServer.Bll
                 var invalid = propIns.FirstOrDefault(c => c.Item1 == "无效");
                 if (null != invalid && invalid.Item2 != 0)   //若存在无效条目
                 {
-                   // result.Invalid11s.Add(conv11);
+                    // result.Invalid11s.Add(conv11);
                 }
             }
             return result;
         }
 
     }
+
 }

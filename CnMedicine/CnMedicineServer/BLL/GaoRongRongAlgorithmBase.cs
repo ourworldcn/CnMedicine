@@ -237,13 +237,13 @@ namespace CnMedicineServer.Bll
                     if (null == _FenXingCnMedicine)
                     {
                         var adds = (from tmp in CnDrugCorrections
-                                    where tmp.TypeNumber == 1 && (float)AllNumbers.Intersect(tmp.Numbers).Count() / tmp.Numbers.Count >= tmp.Thresholds
+                                    where tmp.TypeNumber == 1 && (float)AllNumbers.Intersect(tmp.Numbers).Count() / tmp.Numbers.Count >= tmp.Threshold
                                     select tmp).SelectMany(c => c.CnDrugOfAdd); //增加项
                         var igns = (from tmp in CnDrugCorrections
-                                    where tmp.TypeNumber == 1 && (float)AllNumbers.Intersect(tmp.Numbers).Count() / tmp.Numbers.Count >= tmp.Thresholds
+                                    where tmp.TypeNumber == 1 && (float)AllNumbers.Intersect(tmp.Numbers).Count() / tmp.Numbers.Count >= tmp.Threshold
                                     select tmp).SelectMany(c => c.CnDrugOfSub);   //忽略的项
                         var subc = (from tmp in CnDrugCorrections
-                                    where tmp.TypeNumber == 2 && (float)AllNumbers.Intersect(tmp.Numbers).Count() / tmp.Numbers.Count >= tmp.Thresholds
+                                    where tmp.TypeNumber == 2 && (float)AllNumbers.Intersect(tmp.Numbers).Count() / tmp.Numbers.Count >= tmp.Threshold
                                     select tmp).SelectMany(c => c.CnDrugOfAdd);   //减少项
                         var coll1 = FenXing.SelectMany(c => c.CnDrugs).Union(adds) //增加项
                             .Where(c => !igns.Contains(c.Item1));   //忽略药物

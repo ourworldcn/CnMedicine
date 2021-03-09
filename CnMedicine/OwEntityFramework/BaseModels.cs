@@ -62,6 +62,31 @@ namespace OW.Data.Entity
         }
 
         /// <summary>
+        /// 分解字符串变为值元组。字符串是标点符号分割的多个小断。如："生地黄-9,玄参9g，天冬15;麦冬(醋熏）15;丹参（后下）9。当归9、党参9；茯神15炒酸枣仁15远志6五味子6龙骨（醅)-30"
+        /// </summary>
+        /// <param name="guts"></param>
+        /// <param name="result"></param>
+        public static void FillValueTuples(string guts, List<(string, decimal)> result)
+        {
+            if (string.IsNullOrWhiteSpace(guts))
+                return;
+            var matches = Regex.Matches(guts, KvPatternString);
+
+            foreach (Match match in matches)
+            {
+                var group = match.Groups["name"];
+                if (!group.Success)
+                    continue;
+                string name = group.Value;
+                group = match.Groups["value"];
+                if (!group.Success || !decimal.TryParse(group.Value, out decimal tmp))
+                    continue;
+                result.Add(ValueTuple.Create(name, tmp));
+            }
+            return;
+        }
+
+        /// <summary>
         /// 使用模式 <see cref="ListPatternString"/> 进行分组。
         /// </summary>
         /// <param name="guts"></param>
@@ -112,6 +137,28 @@ namespace OW.Data.Entity
             }
 
             return result;
+        }
+
+        public const string NamePowerPatternString = @"(?<name>[^\*\p{Po}]+)\s*\*?\s*(?<value>[\+-]?\d*\.?[\d]*)";
+
+        /// <summary>
+        /// 获取类似以下字符串中数组，"3104,1101,1202*3,1301,1502,5202,4107*2,4415,1703。"
+        /// </summary>
+        public static void FileListInArrayWithPower(string inputs, List<(string, decimal)> result, decimal valDefault = 0)
+        {
+            var matches = Regex.Matches(inputs, NamePowerPatternString);
+            decimal val;
+            foreach (Match match in matches)
+            {
+                var nameGroup = match.Groups["name"];
+                if (!nameGroup.Success)
+                    continue;
+                var valGroup = match.Groups["value"];
+                if (!valGroup.Success || !decimal.TryParse(valGroup.Value, out val))
+                    val = valDefault;
+                result.Add((nameGroup.Value.Trim(), val));
+            }
+            return;
         }
 
         static ConcurrentDictionary<ValueTuple<Type, Type>, List<ValueTuple<PropertyDescriptor, PropertyDescriptor>>> CopyToDic = new ConcurrentDictionary<(Type, Type), List<(PropertyDescriptor, PropertyDescriptor)>>();

@@ -1,4 +1,5 @@
 ﻿
+using CnMedicineServer.Bll;
 using OW.Data.Entity;
 using System;
 using System.Collections.Concurrent;
@@ -460,7 +461,7 @@ namespace CnMedicineServer.Models
     /// 药物矫正表基类。
     /// </summary>
     [DataContract]
-    public class CnDrugCorrectionBase : CnMedicineLogicBase
+    public class CnDrugCorrectionBase : CnMedicineLogicBase, IMatchableItem<int, object>
     {
 
         /*
@@ -494,7 +495,7 @@ namespace CnMedicineServer.Models
         /// 阈值。
         /// </summary>
         [TextFieldName("阈值")]
-        public virtual float Thresholds { get; set; }
+        public virtual float Threshold { get; set; }
 
         /// <summary>
         /// 加药。
@@ -528,6 +529,10 @@ namespace CnMedicineServer.Models
 
         List<string> _CnDrugOfSub;
 
+        public CnDrugCorrectionBase()
+        {
+        }
+
         /// <summary>
         /// 减药数组。
         /// </summary>
@@ -549,6 +554,36 @@ namespace CnMedicineServer.Models
         /// </summary>
         [TextFieldName("类型号")]
         public virtual int TypeNumber { get; set; }
+
+        public int Group
+        {
+            get
+            {
+                return 0;
+            }
+        }
+
+        List<(int, float)> _Keys;
+        public IEnumerable<(int, float)> Keys
+        {
+            get
+            {
+                lock (this)
+                    if (null == _Keys)
+                    {
+                        _Keys = Numbers.Select(c => (c, 1f)).ToList();
+                    }
+                return _Keys;
+            }
+        }
+
+        public object Value
+        {
+            get
+            {
+                return null;
+            }
+        }
     }
 
 }

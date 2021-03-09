@@ -15,6 +15,103 @@ using System.Threading;
 #pragma warning disable CS3021 // 由于程序集没有 CLSCompliant 特性，因此类型或成员不需要 CLSCompliant 特性
 namespace CnMedicineServer.Bll
 {
+    public class MatchableBase<TKey, TValue> where TKey : IComparer<TKey>
+    {
+        public MatchableBase()
+        {
+
+        }
+
+        public int Count { get; set; } = 1;
+
+        List<MatchableItemBase<TKey, TValue>> com = new List<MatchableItemBase<TKey, TValue>>();
+        TValue Value { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="keys"></param>
+        /// <returns>可能返回空集合，但不会返回null。</returns>
+        public IEnumerable<IMatchableItem<TKey, TValue>> GetMatch(IEnumerable<TKey> keys)
+        {
+            var coll = (from tmp in com
+                        let match = tmp.GetMatch(keys)
+                        where match >= tmp.Threshold
+                        orderby match descending
+                        select ValueTuple.Create(tmp, match)).ToArray();    //获取匹配度,这里顺便确信是内存中的对象集合
+            if (!coll.Any()) //若没有可能的匹配的项
+                return Enumerable.Empty<MatchableItemBase<TKey, TValue>>();
+            var avg = from tmp in coll
+                      group tmp by tmp.Item1.Group into g
+                      let avgMatch = g.Average(c => c.Item2)
+                      orderby avgMatch descending
+                      select ValueTuple.Create(g.Key, avgMatch); //获取组的平均匹配度
+
+            var maxAvgMatchGroup = avg.First().Item1;   //获取平均匹配度最大的组号
+            var result = coll.Where(c => c.Item1.Group == maxAvgMatchGroup).Take(Count).Select(c => c.Item1);
+
+            return result;
+        }
+    }
+
+    public interface IMatchableItem<TKey, TValue>
+    {
+        /// <summary>
+        /// 组号。
+        /// </summary>
+        int Group { get; }
+
+        /// <summary>
+        /// 带权值的键。
+        /// </summary>
+        IEnumerable<(TKey, float)> Keys { get; }
+
+        /// <summary>
+        /// 阈值。
+        /// </summary>
+        float Threshold { get; }
+
+        /// <summary>
+        /// 获取或设置值数据，使用者可用该属性扩展数据。
+        /// </summary>
+        TValue Value { get; }
+    }
+
+    public class MatchableItemBase<TKey, TValue> : IMatchableItem<TKey, TValue>
+    {
+        public IEnumerable<ValueTuple<TKey, float>> Keys { get; set; }
+
+        public int Group { get; set; }
+
+        public float Threshold { get; set; }
+
+        public TValue Value { get; set; }
+
+        float? _TotalPower;
+        public float TotalPower
+        {
+            get
+            {
+                if (null == _TotalPower)
+                    _TotalPower = Keys.Sum(c => c.Item2);   //不包含任何元素，则此方法返回零。
+                return _TotalPower.Value;
+            }
+        }
+
+        /// <summary>
+        /// 获取匹配度。
+        /// </summary>
+        /// <param name="keys"></param>
+        /// <returns></returns>
+        public float GetMatch(IEnumerable<TKey> keys)
+        {
+            var coll = from key in keys
+                       join tmp in Keys
+                       on key equals tmp.Item1
+                       select tmp;
+            return coll.Sum(c => c.Item2) / TotalPower;
+        }
+    }
 
     public static class CnMedicineExtends
     {
@@ -76,6 +173,82 @@ namespace CnMedicineServer.Bll
                 tmp.RemoveAt(index);
             }
             return result;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <param name="powers"></param>
+        /// <param name="keys"></param>
+        /// <returns>返回匹配度，若参数是空集合，或没有匹配项则返回0.</returns>
+        public static float GetMatch<TKey>(this IEnumerable<ValueTuple<TKey, float>> powers, IEnumerable<TKey> keys)
+        {
+            var coll = from key in keys
+                       join tmp in powers
+                       on key equals tmp.Item1
+                       select tmp;
+            var match = coll.Sum(c => c.Item2);
+            if (Math.Abs(match) < 0.000001)
+                return 0;
+            return match / powers.Sum(c => c.Item2);
+        }
+
+        public static IEnumerable<TSource> GetMatchs<TSource, TKey>(this IEnumerable<TSource> src, IEnumerable<TKey> keys, Func<TSource, IEnumerable<ValueTuple<TKey, float>>> powerCreator,
+            Func<TSource, int> groupCreator, Func<TSource, float> thresholdCreator)
+        {
+            var coll = (from tmp in src
+                        let match = powerCreator(tmp).GetMatch(keys)
+                        where match >= thresholdCreator(tmp)
+                        orderby match descending
+                        select ValueTuple.Create(tmp, match)).ToArray();    //获取匹配度
+            if (!coll.Any()) //若没有可能的匹配的项
+                return Enumerable.Empty<TSource>();
+            var avg = from tmp in coll
+                      let gn = groupCreator(tmp.Item1)
+                      group tmp by gn into g
+                      let avgMatch = g.Average(c => c.Item2)
+                      orderby avgMatch descending
+                      select ValueTuple.Create(g.Key, avgMatch); //获取组的平均匹配度
+
+            var maxAvgMatchGroup = avg.First().Item1;   //获取平均匹配度最大的组号
+            var result = coll.Where(c => groupCreator(c.Item1) == maxAvgMatchGroup).Select(c => c.Item1).Take(1);
+            return result;
+        }
+
+        public static float GetMatch<TKey, TValue>(this IMatchableItem<TKey, TValue> source, IEnumerable<TKey> keys)
+        {
+            var coll = from tmp in keys.Distinct()  //不考虑重复输入的匹配
+                       join mi in source.Keys   //IMatchableItem.Keys中的重复项被认为有意义
+                       on tmp equals mi.Item1
+                       select mi;
+            return coll.Sum(c => c.Item2) / source.Keys.Sum(c => c.Item2);
+        }
+
+        /// <summary>
+        /// 获取符合匹配阈值要求的可匹配对象，此方法通过使用延迟执行实现。
+        /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="keys">自动去除重复项。</param>
+        /// <param name="result">匹配的项会调用此委托生成结果元素。</param>
+        /// <returns></returns>
+        public static IEnumerable<TResult> GetMatches<TKey, TValue, TResult>(this IEnumerable<IMatchableItem<TKey, TValue>> source, IEnumerable<TKey> keys,
+            Func<IMatchableItem<TKey, TValue>, float, TResult> result)
+        {
+            var coll = from mi in source
+                       from keyAndPower in mi.Keys
+                       join inKey in keys.Distinct()  //避免输入重复
+                       on keyAndPower.Item1 equals inKey
+                       group keyAndPower by mi into g
+                       let totalMatch = g.Key.Keys.Sum(c => c.Item2)   //总计匹配值
+                       where totalMatch != 0
+                       let match = g.Sum(c => c.Item2) / totalMatch    //匹配度
+                       where match >= g.Key.Threshold
+                       select result(g.Key, match);
+            return coll;
         }
     }
 
@@ -155,11 +328,43 @@ namespace CnMedicineServer.Bll
         public object SyncLocker { get => _SyncLocker; }
     }
 
+    [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+    sealed class CnMedicineAlgorithmAttribute : Attribute
+    {
+        // See the attribute guidelines at 
+        //  http://go.microsoft.com/fwlink/?LinkId=85236
+        readonly string _CnName;
+
+        readonly string _DataFilePath;
+
+        // This is a positional argument
+        public CnMedicineAlgorithmAttribute(string cnName, string dataFilePath = null)
+        {
+            _CnName = cnName;
+
+            // TODO: Implement code here
+            if (string.IsNullOrEmpty(dataFilePath))
+                dataFilePath = $"Content/{cnName}";
+            _DataFilePath = dataFilePath;
+        }
+
+        public string CnName
+        {
+            get { return _CnName; }
+        }
+
+        public string DataFilePath
+        {
+            get { return _DataFilePath; }
+        }
+    }
+
     /// <summary>
     /// 所有智能问诊的算法基类。
     /// </summary>
     public abstract class CnMedicineAlgorithmBase
     {
+
         /// <summary>
         /// 此字符串标志<see cref="OwAdditionalAttribute"/>中Name属性内容。表示其Value中内容是该类处理的调查模板Id。
         /// </summary>
@@ -217,7 +422,7 @@ namespace CnMedicineServer.Bll
             List<SurveysQuestionTemplate> removes = new List<SurveysQuestionTemplate>();
             List<IGrouping<string, CnMedicineSignsBase>> adds = new List<IGrouping<string, CnMedicineSignsBase>>();
             List<Tuple<IGrouping<string, CnMedicineSignsBase>, SurveysQuestionTemplate>> modifies = new List<Tuple<IGrouping<string, CnMedicineSignsBase>, SurveysQuestionTemplate>>();
-            questions.GetMergeInfo(srcColl, c => c.QuestionTitle, c => c.Key, removes, adds, modifies);
+            questions.GetMergeInfo(c => c.QuestionTitle, srcColl, c => c.Key, removes, adds, modifies);
             //删除问题对象
             context.Set<SurveysQuestionTemplate>().RemoveRange(removes);
             //增加问题对象
@@ -238,7 +443,8 @@ namespace CnMedicineServer.Bll
             }
             context.Set<SurveysAnswerTemplate>().RemoveRange(removedAnswers);
 
-            surveysTemplate.Questions.AddRange(adds.Select(c => new SurveysQuestionTemplate()));
+            //surveysTemplate.Questions.AddRange(adds.Select(c => new SurveysQuestionTemplate()));
+            var lst = surveysTemplate.Questions.Where(c => c.Kind == 0).ToList();
             #endregion 处理问题对象
         }
 
@@ -255,8 +461,8 @@ namespace CnMedicineServer.Bll
             var survId = Guid.Parse(SurveysTemplateIdString);
             var tmp = context.Set<SurveysTemplate>().Find(survId);
 
-            if (null != tmp)
-                return;
+            //if (null != tmp)
+            //    return;
 
             var fullPath = System.Web.HttpContext.Current.Server.MapPath(signsFileName);    //本机全路径
             var path = Path.GetDirectoryName(fullPath); //路径名
@@ -317,6 +523,29 @@ namespace CnMedicineServer.Bll
             AdditionalNumbers.CollectionChanged += AdditionalNumbers_CollectionChanged;
         }
 
+        /// <summary>
+        /// 获取病名，可能是空引用。
+        /// </summary>
+        /// <param name="type">算法类的类型对象。</param>
+        /// <returns>病名，可能是空引用。</returns>
+        protected static string GetCnName(Type type)
+        {
+            return TypeDescriptor.GetAttributes(type).OfType<CnMedicineAlgorithmAttribute>().FirstOrDefault()?.CnName;
+        }
+
+        /// <summary>
+        /// 获取数据文件的路径，如"Content/病名"
+        /// </summary>
+        /// <param name="type">算法类的类型对象。</param>
+        /// <returns></returns>
+        protected static string GetDataFilePath(Type type)
+        {
+            var result = TypeDescriptor.GetAttributes(type).OfType<CnMedicineAlgorithmAttribute>().FirstOrDefault()?.DataFilePath;
+            if (string.IsNullOrEmpty(result))
+                result = $"Content/{GetCnName(type)}";
+            return result;
+        }
+
         private void AdditionalNumbers_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             switch (e.Action)
@@ -342,6 +571,7 @@ namespace CnMedicineServer.Bll
 
         private List<SurveysAnswer> _Answers;
         private Dictionary<int, SurveysAnswerTemplate> _AnswerTemplates;
+
         private Dictionary<int, SurveysQuestionTemplate> _QuestionTemplates;
 
         private HashSet<int> _Numbers;
@@ -434,6 +664,9 @@ namespace CnMedicineServer.Bll
                 return _AllNumbers;
             }
         }
+
+        public Dictionary<int, SurveysQuestionTemplate> QuestionTemplates { get => _QuestionTemplates; }
+        public List<SurveysAnswer> Answers { get => _Answers; }
 
         protected abstract SurveysConclusion GetResultCore(Surveys surveys, ApplicationDbContext db);
 
@@ -530,7 +763,7 @@ namespace CnMedicineServer.Bll
             List<SurveysAnswerTemplate> removes = new List<SurveysAnswerTemplate>();
             List<CnMedicineSignsBase> adds = new List<CnMedicineSignsBase>();
             List<Tuple<CnMedicineSignsBase, SurveysAnswerTemplate>> modifies = new List<Tuple<CnMedicineSignsBase, SurveysAnswerTemplate>>();
-            surveysQuestionTemplate.Answers.GetMergeInfo(signs, c => c.AnswerTitle, c => c.ZhengZhuang, removes, adds, modifies);
+            surveysQuestionTemplate.Answers.GetMergeInfo(c => c.AnswerTitle, signs, c => c.ZhengZhuang, removes, adds, modifies);
             //删除答案对象
             removedAnswers?.AddRange(removes);
             foreach (var item in removes)

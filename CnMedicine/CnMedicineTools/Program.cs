@@ -16,7 +16,7 @@ namespace CnMedicineTools
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new frmGetCnDrug());
+            Application.Run(new Form1());
             Properties.Settings.Default.Save();
         }
     }

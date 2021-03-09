@@ -97,23 +97,11 @@ namespace CnMedicineServer.Bll
                 Name = "诊断",
                 Value = CnName,
             });
-            var coll = surveys.SurveysAnswers.Select(c =>
-            {
-                var answerTemplate = db.Set<SurveysAnswerTemplate>().Find(c.TemplateId);
-                if (null == answerTemplate)  //若没有直接绑定到答案项
-                {
-                    var questionTemplate = db.Set<SurveysQuestionTemplate>().Find(c.TemplateId);
-                    return Tuple.Create(questionTemplate.QuestionTitle, c.Guts);
-                }
-                else //直接绑定了答案项
-                {
-                    return Tuple.Create(answerTemplate.SurveysQuestionTemplate.QuestionTitle, answerTemplate.AnswerTitle);
-                }
-            }).GroupBy(c => c.Item1).Select(c => Tuple.Create(c.Key, string.Join(",", c.Select(subc => subc.Item2))));
+            var str = surveys.GetTextWithJson(db.Set<SurveysQuestionTemplate>(), db.Set<SurveysAnswerTemplate>());
             result.ThingPropertyItems.Add(new ThingPropertyItem()
             {
                 Name = "身体症状",
-                Value = string.Join("; ", coll.Select(c => $"{c.Item1}:{c.Item2}")),
+                Value = str,
             });
             result.ThingPropertyItems.Add(new ThingPropertyItem()
             {
@@ -1007,7 +995,7 @@ namespace CnMedicineServer.Bll
         [OwAdditional(InitializationFuncName)]
         public static void Initialize(DbContext context)
         {
-            InitializeCore(context, $"~/{DataFilePath}/{CnName}病-症状表.txt", typeof(TongJingAlgorithm));
+            InitializeCore(context, $"~/{DataFilePath}/{CnName}-症状表.txt", typeof(TongJingAlgorithm));
             var survId = Guid.Parse(SurveysTemplateIdString);
             //初始化模板数据
             var template = context.Set<SurveysTemplate>().Find(survId);

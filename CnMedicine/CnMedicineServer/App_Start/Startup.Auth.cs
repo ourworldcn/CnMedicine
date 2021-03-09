@@ -10,6 +10,7 @@ using Microsoft.Owin.Security.OAuth;
 using Owin;
 using CnMedicineServer.Providers;
 using CnMedicineServer.Models;
+using System.Diagnostics;
 
 namespace CnMedicineServer
 {
@@ -64,7 +65,12 @@ namespace CnMedicineServer
             //    ClientId = "",
             //    ClientSecret = ""
             //});
+            // Create a trace listener for the event log.
+            EventLogTraceListener myTraceListener = new EventLogTraceListener("CnMedicineServer");
 
+            // Add the event log trace listener to the collection.
+            Trace.Listeners.Add(myTraceListener);
+            Trace.TraceInformation("CnMedicineServer启动");
         }
     }
 }

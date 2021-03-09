@@ -155,7 +155,13 @@ namespace OW.Data.Entity
             if (type.IsEnum) //若是枚举类型
             {
                 var td = TypeDescriptor.GetConverter(type);
-                result = td.ConvertFrom(obj);
+                var str = obj as string;
+                if (null != str)
+                {
+                    result = td.ConvertFromString(str.Replace('，',','));
+                }
+                else
+                    result = td.ConvertFrom(obj);
 
             }
             else
@@ -186,6 +192,11 @@ namespace OW.Data.Entity
                     case TypeCode.Double:
                     case TypeCode.Decimal:
                     case TypeCode.DateTime:
+                        if (obj is string && string.IsNullOrWhiteSpace(obj as string))
+                            result = 0;
+                        else
+                            result = Convert.ChangeType(obj, type);
+                        break;
                     case TypeCode.String:
                         result = Convert.ChangeType(obj, type);
                         break;

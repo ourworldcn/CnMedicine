@@ -193,4 +193,97 @@ namespace CnMedicineServer.Bll
         }
 
     }
+
+    [OwAdditional(SurveysTemplateIdName, SurveysTemplateIdString)]
+    [CnMedicineAlgorithm("便秘", "Content/刘刚/便秘")]
+    public class BianMiAlgorithm : LiuGangAlgorithmBase
+    {
+        /// <summary>
+        /// 此算法处理的调查模板Id。
+        /// </summary>
+        public const string SurveysTemplateIdString = "1594E164-6206-41F5-AB34-9457F14A041F";
+
+        /// <summary>
+        /// 初始化函数。
+        /// </summary>
+        /// <param name="context"></param>
+        [OwAdditional(InitializationFuncName)]
+        public static void Initialize(DbContext context)
+        {
+            var currentType = MethodBase.GetCurrentMethod().DeclaringType;
+            var dataFilePath = GetDataFilePath(currentType);
+            var cnName = GetCnName(currentType);
+            InitializeCore(context, $"~/{dataFilePath}/{cnName}-症状表.txt", currentType);
+            var survId = Guid.Parse(SurveysTemplateIdString);
+            //初始化模板数据
+            var template = context.Set<SurveysTemplate>().Find(survId);
+            template.Name = cnName;
+            template.UserState = "支持复诊0";
+            template.Description = null;
+            //添加专病项
+            InsomniaCasesItem caseItem = new InsomniaCasesItem()
+            {
+                Name = cnName,
+            };
+            context.Set<InsomniaCasesItem>().AddOrUpdate(caseItem);
+
+            context.SaveChanges();
+
+        }
+
+        /// <summary>
+        /// 构造函数。
+        /// </summary>
+        public BianMiAlgorithm()
+        {
+        }
+
+    }
+
+    [OwAdditional(SurveysTemplateIdName, SurveysTemplateIdString)]
+    [CnMedicineAlgorithm("脏躁", "Content/刘刚/脏躁")]
+    public class ZangzaoAlgorithm : LiuGangAlgorithmBase
+    {
+        /// <summary>
+        /// 此算法处理的调查模板Id。
+        /// </summary>
+        public const string SurveysTemplateIdString = "D25494D2-4E97-4336-B157-44161E5EA40C";
+
+        /// <summary>
+        /// 初始化函数。
+        /// </summary>
+        /// <param name="context"></param>
+        [OwAdditional(InitializationFuncName)]
+        public static void Initialize(DbContext context)
+        {
+            var currentType = MethodBase.GetCurrentMethod().DeclaringType;
+            var dataFilePath = GetDataFilePath(currentType);
+            var cnName = GetCnName(currentType);
+            InitializeCore(context, $"~/{dataFilePath}/{cnName}-症状表.txt", currentType);
+            var survId = Guid.Parse(SurveysTemplateIdString);
+            //初始化模板数据
+            var template = context.Set<SurveysTemplate>().Find(survId);
+            template.Name = cnName;
+            template.UserState = "支持复诊0";
+            template.Description = null;
+            //添加专病项
+            InsomniaCasesItem caseItem = new InsomniaCasesItem()
+            {
+                Name = cnName,
+            };
+            context.Set<InsomniaCasesItem>().AddOrUpdate(caseItem);
+
+            context.SaveChanges();
+
+        }
+
+        /// <summary>
+        /// 构造函数。
+        /// </summary>
+        public ZangzaoAlgorithm()
+        {
+        }
+
+    }
+
 }

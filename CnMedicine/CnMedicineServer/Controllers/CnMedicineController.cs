@@ -148,7 +148,6 @@ namespace CnMedicineServer.Controllers
             var result = Paging(coll, model);
             foreach (var item in result.Content.Datas)
             {
-
                 item.LoadThingPropertyItemsAsync(DbContext).Wait();
             }
 
@@ -425,7 +424,7 @@ namespace CnMedicineServer.Controllers
                 //写入图片
                 result?.Surveys?.SavePictures(DbContext);
                 innerModel.ConclusionId = result.Id;
-
+                //.\SQLEXPRESS
                 try
                 {
                     var client = GetHttpClient();
@@ -436,9 +435,11 @@ namespace CnMedicineServer.Controllers
                     response.EnsureSuccessStatusCode();
 
                     //向測試平臺發送數據
+#if DEBUG
                     var testClient = GetHttpClient();
                     var testResponse = GetTestHttpClient()?.PostAsJsonAsync(_TestSaveConclusionPath, guts)?.Result;
                     testResponse?.EnsureSuccessStatusCode();
+#endif
                 }
                 catch (Exception err)
                 {
@@ -543,6 +544,28 @@ namespace CnMedicineServer.Controllers
         public IHttpActionResult GetFenXingConfig()
         {
             return Ok();
+        }
+
+        [Route("Test")]
+        [HttpGet]
+        [ResponseType(typeof(SurveysConclusion))]
+        public IHttpActionResult Test(Guid templateId)
+        {
+            var numbers = new int[] { 1002,2003};
+            Surveys answers = new Surveys() { TemplateId = templateId, UserId = "BySetSurveysWithNumbers", Id = Guid.Empty };
+            answers.ThingPropertyItems.Add(new ThingPropertyItem()
+            {
+                Name = "PreId",
+                Value = Guid.NewGuid().ToString("D"),
+            });
+            var db = DbContext;
+            var template = db.SurveysTemplates.Find(templateId);
+            var answerTemplates = template.Questions.SelectMany(c => c.Answers).ToArray();
+            var coll = from tmp in answerTemplates
+                       where numbers.Contains(tmp.IdNumber)
+                       select tmp;
+            answers.SurveysAnswers.AddRange(coll.Select(c => new SurveysAnswer() { TemplateId = c.Id }));
+            return SetSurveys(answers);
         }
     }
 

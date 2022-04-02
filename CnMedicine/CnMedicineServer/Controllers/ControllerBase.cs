@@ -3,6 +3,7 @@ using CnMedicineServer;
 using CnMedicineServer.Models;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
+using OW.Data.Entity;
 using OW.ViewModel;
 using System;
 using System.Linq;

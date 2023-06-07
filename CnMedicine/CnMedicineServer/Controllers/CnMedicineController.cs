@@ -84,12 +84,14 @@ namespace CnMedicineServer.Controllers
         /// <summary>
         /// 发送回调数据的地址。
         /// </summary>
-        const string _SaveConclusionPath = "/web/interface/questionnaire/save";
+        //const string _SaveConclusionPath = "/web/interface/questionnaire/save";
+        const string _SaveConclusionPath = "/interface/questionnaire/save";
 
         static Lazy<HttpClient> _LazyHttpClient = new Lazy<HttpClient>(() =>
         {
             var result = new HttpClient();
-            result.BaseAddress = new Uri("https://www.yaoyiduo.com");
+            //result.BaseAddress = new Uri("https://www.yaoyiduo.com");
+            result.BaseAddress = new Uri("http://123.56.89.104:8000");
             result.DefaultRequestHeaders.Accept.Clear();
             result.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
@@ -142,7 +144,7 @@ namespace CnMedicineServer.Controllers
         [Route("ListTemplate")]
         [ResponseType(typeof(PagingResult<SurveysTemplate>))]
         [HttpGet]
-        public IHttpActionResult GetList([FromUri]PagingControlBaseViewModel model)
+        public IHttpActionResult GetList([FromUri] PagingControlBaseViewModel model)
         {
             var coll = DbContext.SurveysTemplates.AsNoTracking().OrderBy(c => c.Name);
             var result = Paging(coll, model);
@@ -180,7 +182,7 @@ namespace CnMedicineServer.Controllers
         [Route("LastSurveys")]
         [HttpGet]
         [ResponseType(typeof(Surveys))]
-        public IHttpActionResult GetLastSurveys([FromUri]string userId)
+        public IHttpActionResult GetLastSurveys([FromUri] string userId)
         {
             var db = DbContext;
             try
@@ -265,7 +267,7 @@ namespace CnMedicineServer.Controllers
         [Route("SurveysTemplate")]
         [HttpGet]
         [ResponseType(typeof(SurveysTemplate))]
-        public IHttpActionResult GetSurveysTemplate([FromUri]Guid? id = null)
+        public IHttpActionResult GetSurveysTemplate([FromUri] Guid? id = null)
         {
             var db = DbContext;
             var proxy = db.Configuration.ProxyCreationEnabled;
@@ -464,7 +466,7 @@ namespace CnMedicineServer.Controllers
         [Route("Conclusions")]
         [HttpGet]
         [ResponseType(typeof(SurveysConclusion))]
-        public IHttpActionResult GetConclusions([FromUri]Guid id)
+        public IHttpActionResult GetConclusions([FromUri] Guid id)
         {
             if (!ModelState.IsValid)
             {
@@ -495,7 +497,7 @@ namespace CnMedicineServer.Controllers
         [ResponseType(typeof(Surveys))]
         [Route("Surveys")]
         [HttpGet]
-        public IHttpActionResult GetSurveysById([FromUri]Guid surveysId)
+        public IHttpActionResult GetSurveysById([FromUri] Guid surveysId)
         {
             try
             {
@@ -551,7 +553,7 @@ namespace CnMedicineServer.Controllers
         [ResponseType(typeof(SurveysConclusion))]
         public IHttpActionResult Test(Guid templateId)
         {
-            var numbers = new int[] { 1002,2003};
+            var numbers = new int[] { 1002, 2003 };
             Surveys answers = new Surveys() { TemplateId = templateId, UserId = "BySetSurveysWithNumbers", Id = Guid.Empty };
             answers.ThingPropertyItems.Add(new ThingPropertyItem()
             {

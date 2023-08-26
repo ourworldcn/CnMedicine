@@ -30,7 +30,7 @@ namespace CnMedicineServer.Models
         /// <summary>
         /// 生产环境下数据库连接字符串。
         /// </summary>
-        private static string _DefaultConnectionString = @"Data Source=.\SQLEXPRESS;Initial Catalog=CnMedicineServer;Integrated Security=True";
+        private static string _DefaultConnectionString = @"Data Source=.\SQL2019;Initial Catalog=CnMedicineServer;Integrated Security=True";
 
         /// <summary>
         /// 开发环境下数据库连接字符串。
